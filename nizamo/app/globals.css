@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream: #F5F0E8;
+  --sand: #EDE6D9;
+  --warm-white: #FBF8F3;
+  --espresso: #2C1810;
+  --brown-mid: #5C3D2E;
+  --brown-light: #8B6355;
+  --terracotta: #C4622D;
+  --terra-light: #E07848;
+  --gold: #D4A853;
+  --green: #4A8C6F;
+  --red: #C0392B;
+  --orange: #D4732D;
+  --text-dark: #1E1208;
+  --text-mid: #4A3728;
+  --text-light: #8B7566;
+  --border: rgba(92,61,46,0.12);
+  --shadow: rgba(44,24,16,0.08);
+  --sidebar-w: 220px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  font-size: 14px;
+}
+
+/* Animations — match PHP MVP exactly */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up   { animation: fadeUp 0.4s ease both; }
+.animate-fade-up-2 { animation: fadeUp 0.4s ease 0.1s both; }
+.animate-fade-up-3 { animation: fadeUp 0.4s ease 0.2s both; }
+
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.animate-modal { animation: modalIn 0.25s ease; }
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-pulse-dot { animation: pulseDot 2s infinite; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--brown-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--terracotta); }
+
+/* Print styles for marksheets / certificates */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  @page { margin: 10mm; size: A4; }
+}
