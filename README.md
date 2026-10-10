@@ -18,13 +18,17 @@ School Management SaaS for Pakistani schools. Migrated from PHP MVP.
    - service_role key (click Reveal)
 
 ### 2. Environment variables
-1. Rename `.env.local.example` to `.env.local`
-2. Paste your 3 Supabase values into it
-3. Get a NEXTAUTH_SECRET from https://generate-secret.vercel.app/32 and paste it in
+1. Copy `.env.local.example` to `.env.local` (`cp .env.local.example .env.local`)
+2. Paste your 3 Supabase values into it (URL, anon key, service_role key)
+3. Generate a `NEXTAUTH_SECRET` (`openssl rand -base64 32`, or https://generate-secret.vercel.app/32) and paste it in
+4. `NEXTAUTH_URL` is not read by app code. Leave it as `http://localhost:3000` locally; it is only required in production on hosts other than Vercel.
 
-### 3. Install & run
+`.env.local` is git-ignored. Never commit it, and never put the service_role key in a `NEXT_PUBLIC_` variable.
+
+### 3. Install, verify, run
 ```bash
 npm install
+npm run check:db   # verifies Supabase is reachable, schema matches, demo login works
 npm run dev
 ```
 
@@ -40,6 +44,9 @@ Super admin: http://localhost:3000/login?school=admin
 
 ## Troubleshooting
 
+**Anything backend-related** → run `npm run check:db` first. Supabase pauses inactive free projects; if the
+host does not resolve, restore the project in the Supabase dashboard and wait ~2 minutes.
+
 **"School portal not found"** → seed.sql was not run, or .env.local has wrong
 Supabase URL/keys. Check the browser Network tab: /api/schools/check response.
 
@@ -48,8 +55,8 @@ Re-run seed section 1 & 2. Password is exactly: password
 
 **Module not found '@/...'** → jsconfig.json missing from project root.
 
-**500 error on any /api route** → .env.local values wrong or file still named
-.env.local.example. Restart `npm run dev` after any .env change.
+**500 error on any /api route** → .env.local values wrong or the file is still
+named .env.local.example. Restart `npm run dev` after any .env change.
 
 ## Project structure
 - `app/` — pages & API routes (Next.js App Router)
