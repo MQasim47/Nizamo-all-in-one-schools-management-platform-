@@ -1,11 +1,10 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireSession } from '@/lib/auth/session'
 import Topbar from '@/components/layout/Topbar'
 
 // Temporary placeholder — full dashboard with stats comes in next build phase.
 // This exists so login has somewhere to land without a 404.
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+  const session = await requireSession()
 
   return (
     <>

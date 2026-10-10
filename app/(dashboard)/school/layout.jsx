@@ -1,29 +1,28 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
-import { supabaseAdmin } from '@/lib/supabase'
+import { requireSession } from '@/lib/auth/session'
+import { getSchoolClient } from '@/lib/supabase/school'
+import { can } from '@/lib/auth/permissions.mjs'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 
-export default async function SchoolLayout({ children }) {
-  const session = await getServerSession(authOptions)
+// Dashboard pages are private: never index them.
+export const metadata = {
+  robots: { index: false, follow: false, nocache: true },
+}
 
-  if (!session) {
-    redirect('/login')
-  }
+export default async function SchoolLayout({ children }) {
+  // Redirects to /login (signed out) or /signed-out (user deactivated / school suspended).
+  const session = await requireSession()
 
   let pendingApprovalsCount = 0
 
-  if (session.user.role === 'principal' || session.user.role === 'superadmin') {
-    const { data } = await supabaseAdmin
+  if (can(session.user.role, 'results.approve')) {
+    const ctx = await getSchoolClient(session)
+    const { data } = await ctx.db
       .from('results')
       .select('class_id, subject_id, exam_type')
-      .eq('school_id', session.user.schoolId)
       .eq('status', 'pending')
 
     // Count distinct class+subject+exam combinations (matches PHP logic)
-    const unique = new Set(
-      (data || []).map((r) => `${r.class_id}-${r.subject_id}-${r.exam_type}`)
-    )
+    const unique = new Set((data || []).map((r) => `${r.class_id}-${r.subject_id}-${r.exam_type}`))
     pendingApprovalsCount = unique.size
   }
 

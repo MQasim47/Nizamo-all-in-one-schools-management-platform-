@@ -1,3 +1,7 @@
+-- !!! DEVELOPMENT ONLY. Never run this on a production project. !!!
+-- Every account below shares one weak password ('password'). After running it, run
+-- `npm run demo:passwords` to give each demo account its own strong random password.
+-- (Warning added in Session 2; the data below is unchanged.)
 -- ============================================
 -- Edu4Everyone — Seed Data
 -- Run this AFTER schema.sql in Supabase SQL Editor
