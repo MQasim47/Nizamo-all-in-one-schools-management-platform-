@@ -5,6 +5,53 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import clsx from 'clsx'
 import { initials } from '@/lib/utils/format'
+import { can } from '@/lib/auth/permissions.mjs'
+
+// Navigation is driven by permissions, not by role names, so new roles (accountant, parent, ...)
+// get a sensible menu automatically. The database still enforces what each role can actually read.
+const NAV = [
+  { section: 'Overview', items: [{ href: '/school/dashboard', icon: '⊞', label: 'Dashboard' }] },
+  { section: 'School Setup', items: [
+    { href: '/school/classes', icon: '🏫', label: 'Classes', perm: 'classes.write' },
+    { href: '/school/subjects', icon: '📚', label: 'Subjects', perm: 'subjects.write' },
+    { href: '/school/teachers', icon: '👩‍🏫', label: 'Teachers', perm: 'users.manage' },
+    { href: '/school/students', icon: '👨‍🎓', label: 'Students', perm: 'students.read_all' },
+    { href: '/school/general-register', icon: '📋', label: 'General Register', perm: 'students.write' },
+  ] },
+  { section: 'My Classes', items: [
+    { href: '/school/my-students', icon: '👨‍🎓', label: 'My Students', perm: 'students.read_assigned' },
+    { href: '/school/homework', icon: '📝', label: 'Homework', perm: 'homework.write_assigned' },
+  ] },
+  { section: 'Reports', items: [
+    { href: '/school/attendance', icon: '✅', label: 'Attendance', labels: { teacher: 'Mark Attendance' }, perm: ['attendance.read_all', 'attendance.write_assigned'] },
+    { href: '/school/results', icon: '📊', label: 'Results', labels: { teacher: 'Enter Marks' }, perm: ['results.read_all', 'results.write_assigned'] },
+    { href: '/school/approvals', icon: '🔔', label: 'Approvals', perm: 'results.approve' },
+    { href: '/school/marksheets', icon: '📄', label: 'Marksheets', perm: 'results.approve' },
+    { href: '/school/result-sheet', icon: '🗂️', label: 'Result Sheet', perm: 'results.approve' },
+  ] },
+  { section: 'Finance', items: [{ href: '/school/fees', icon: '💰', label: 'Fee Management', perm: 'fees.read_all' }] },
+  { section: 'Admin', items: [{ href: '/school/settings', icon: '⚙️', label: 'Settings', perm: 'settings.write' }] },
+]
+
+const SUPERADMIN_NAV = [
+  { section: 'Super Admin', items: [
+    { href: '/school/dashboard', icon: '⊞', label: 'Dashboard' },
+    { href: '/school/schools', icon: '🏫', label: 'All Schools' },
+    { href: '/register', icon: '➕', label: 'Register School' },
+  ] },
+]
+
+function navFor(role) {
+  if (role === 'superadmin') return SUPERADMIN_NAV
+  return NAV.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => {
+      if (!item.perm) return true
+      const perms = Array.isArray(item.perm) ? item.perm : [item.perm]
+      return perms.some((p) => can(role, p))
+    }),
+  })).filter((group) => group.items.length > 0)
+}
 
 function NavItem({ href, icon, label, active, badge }) {
   return (
@@ -69,54 +116,21 @@ export default function Sidebar({ pendingApprovalsCount = 0 }) {
 
       {/* NAV */}
       <nav className="flex-1 px-2.5 py-3 flex flex-col gap-px">
-        {role === 'superadmin' && (
-          <>
-            <SectionLabel>Super Admin</SectionLabel>
-            <NavItem href="/school/dashboard" icon="⊞" label="Dashboard" active={isActive('/school/dashboard')} />
-            <NavItem href="/school/schools" icon="🏫" label="All Schools" active={isActive('/school/schools')} />
-            <NavItem href="/register" icon="➕" label="Register School" active={isActive('/register')} />
-          </>
-        )}
-
-        {role === 'principal' && (
-          <>
-            <SectionLabel>Overview</SectionLabel>
-            <NavItem href="/school/dashboard" icon="⊞" label="Dashboard" active={isActive('/school/dashboard')} />
-
-            <SectionLabel>School Setup</SectionLabel>
-            <NavItem href="/school/classes" icon="🏫" label="Classes" active={isActive('/school/classes')} />
-            <NavItem href="/school/subjects" icon="📚" label="Subjects" active={isActive('/school/subjects')} />
-            <NavItem href="/school/teachers" icon="👩‍🏫" label="Teachers" active={isActive('/school/teachers')} />
-            <NavItem href="/school/students" icon="👨‍🎓" label="Students" active={isActive('/school/students')} />
-            <NavItem href="/school/general-register" icon="📋" label="General Register" active={isActive('/school/general-register')} />
-
-            <SectionLabel>Reports</SectionLabel>
-            <NavItem href="/school/attendance" icon="✅" label="Attendance" active={isActive('/school/attendance')} />
-            <NavItem href="/school/results" icon="📊" label="Results" active={isActive('/school/results')} />
-            <NavItem href="/school/approvals" icon="🔔" label="Approvals" active={isActive('/school/approvals')} badge={pendingApprovalsCount} />
-            <NavItem href="/school/marksheets" icon="📄" label="Marksheets" active={isActive('/school/marksheets')} />
-            <NavItem href="/school/result-sheet" icon="🗂️" label="Result Sheet" active={isActive('/school/result-sheet')} />
-
-            <SectionLabel>Finance</SectionLabel>
-            <NavItem href="/school/fees" icon="💰" label="Fee Management" active={isActive('/school/fees')} />
-
-            <SectionLabel>Admin</SectionLabel>
-            <NavItem href="/school/settings" icon="⚙️" label="Settings" active={isActive('/school/settings')} />
-          </>
-        )}
-
-        {role === 'teacher' && (
-          <>
-            <SectionLabel>My Portal</SectionLabel>
-            <NavItem href="/school/dashboard" icon="⊞" label="Dashboard" active={isActive('/school/dashboard')} />
-
-            <SectionLabel>My Classes</SectionLabel>
-            <NavItem href="/school/my-students" icon="👨‍🎓" label="My Students" active={isActive('/school/my-students')} />
-            <NavItem href="/school/attendance" icon="✅" label="Mark Attendance" active={isActive('/school/attendance')} />
-            <NavItem href="/school/results" icon="📊" label="Enter Marks" active={isActive('/school/results')} />
-            <NavItem href="/school/homework" icon="📝" label="Homework" active={isActive('/school/homework')} />
-          </>
-        )}
+        {navFor(role).map((group) => (
+          <div key={group.section} className="flex flex-col gap-px">
+            <SectionLabel>{group.section}</SectionLabel>
+            {group.items.map((item) => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.labels?.[role] || item.label}
+                active={isActive(item.href)}
+                badge={item.href === '/school/approvals' ? pendingApprovalsCount : 0}
+              />
+            ))}
+          </div>
+        ))}
       </nav>
 
       {/* USER PROFILE */}

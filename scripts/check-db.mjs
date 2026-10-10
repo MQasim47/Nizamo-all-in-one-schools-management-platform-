@@ -14,7 +14,7 @@ if (existsSync(envPath)) {
   }
 }
 
-const REQUIRED = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'NEXTAUTH_SECRET']
+const REQUIRED = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_JWT_SECRET', 'NEXTAUTH_SECRET']
 
 // Columns the app code selects/inserts/filters on, per table (from lib/**, middleware, layouts).
 const EXPECTED = {
@@ -26,6 +26,9 @@ const EXPECTED = {
   teacher_assignments: 'id,school_id,teacher_id,class_id,subject_id',
   students: 'id,school_id,class_id,gr_number,roll_number,name,father_name,mother_name,guardian_name,guardian_relationship,date_of_birth,place_of_birth,gender,religion,caste,nationality,b_form_number,father_cnic,mother_cnic,contact,home_address,emergency_contact,last_school_name,last_school_tc_number,last_school_leaving_date,last_class_attended,date_of_admission,admitted_in_class,date_of_leaving,leaving_reason,leaving_class,promoted_to_class,status',
   results: 'id,school_id,class_id,subject_id,exam_type,status',
+  user_students: 'id,school_id,user_id,student_id',
+  audit_log: 'id,school_id,user_id,table_name,record_id,action,old_data,new_data,created_at',
+  login_attempts: 'id,identifier,success,created_at',
 }
 
 let failed = false
@@ -33,7 +36,7 @@ const ok = (m) => console.log(`  ok    ${m}`)
 const bad = (kind, m) => { failed = true; console.log(`  FAIL  [${kind}] ${m}`) }
 
 function classify(err) {
-  const msg = `${err?.message || ''} ${err?.cause?.code || ''} ${err?.code || ''} ${err?.details || ''}`
+  const msg = `${err?.message || ''} ${err?.cause?.code || ''} ${err?.code || ''} ${err?.details || ''} ${err?.status || ''}`
   if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed|network|UND_ERR/i.test(msg)) return 'network blocked or project paused (host unreachable)'
   if (/PGRST205|PGRST204|42P01|42703|does not exist|schema cache/i.test(msg)) return 'schema mismatch'
   if (/paused|540|upstream|<html/i.test(msg)) return 'project paused'
@@ -55,7 +58,8 @@ const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 })
 
 console.log('2. Connectivity + schools read')
-const probe = await db.from('schools').select('id', { count: 'exact', head: true }).then((r) => r, (e) => ({ error: e }))
+// GET (not HEAD): a HEAD error carries no body, so PostgREST codes like PGRST205 would be lost.
+const probe = await db.from('schools').select('id', { count: 'exact' }).limit(1).then((r) => r, (e) => ({ error: e }))
 if (probe.error) {
   let kind = classify(probe.error)
   if (kind.startsWith('network')) {
@@ -67,11 +71,14 @@ if (probe.error) {
     if (!hostOk && netOk) kind = 'project paused/deleted or wrong NEXT_PUBLIC_SUPABASE_URL (host does not resolve, internet is fine)'
     else if (!netOk) kind = 'network blocked (no DNS at all)'
   }
-  bad(kind, probe.error.message || String(probe.error))
+  if (kind === 'unknown' && probe.status === 404) kind = 'schema mismatch (table missing: run supabase/schema.sql + seed.sql)'
+  if (kind === 'unknown' && probe.status >= 500) kind = 'project paused or Supabase outage'
+  bad(kind, probe.error.message || JSON.stringify(probe.error) || `HTTP ${probe.status}`)
   console.log('\nIf this says paused: restore the project in the Supabase dashboard, wait ~2 min, rerun.')
   process.exit(1)
 }
 ok(`schools readable (${probe.count} rows)`)
+if (!process.env.SUPABASE_JWT_SECRET) bad('missing env vars', 'SUPABASE_JWT_SECRET not set')
 
 console.log('3. Schema vs code')
 for (const [table, cols] of Object.entries(EXPECTED)) {
@@ -87,7 +94,7 @@ else {
   ok(`school 'ghs' exists: ${school.school_name}`)
   const { data: user, error: uErr } = await db.from('users').select('*').eq('email', 'principal@ghs.com').eq('school_id', school.id).eq('status', 'active').single()
   if (uErr || !user) bad('seed missing', `user principal@ghs.com not found: ${uErr?.message || 'no row'}`)
-  else if (!(await bcrypt.compare('password', user.password_hash))) bad('seed mismatch', 'demo password hash does not verify "password"')
+  else if (!(await bcrypt.compare(process.env.DEMO_PASSWORD_PRINCIPAL || 'password', user.password_hash))) bad('seed mismatch', 'demo principal hash does not verify (run npm run demo:passwords, or seed.sql for the default)')
   else ok('authorize() path works: school -> user -> bcrypt verify')
 }
 
