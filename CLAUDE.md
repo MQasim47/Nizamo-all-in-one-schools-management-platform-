@@ -105,6 +105,7 @@ Tier 3: transport, library, hostel, inventory, quizzes, AI features, multi-campu
 - After each module, run `npm run build` and fix errors.
 - End every session by updating PROGRESS.md: done, decisions, known issues, next session.
 - Report errors with exact file:line.
+- Git: session branches stay LOCAL only; never push them to origin. When tests and build pass, merge the session branch into `main` (fast-forward if possible) and push `main` only. No pull requests. If anything failed or was skipped, ask the user before merging.
 
 Latest security/quality audit: [docs/AUDIT.md](docs/AUDIT.md).
 
