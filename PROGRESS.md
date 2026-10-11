@@ -8,6 +8,9 @@
 - `next lint` is gone in Next 16: `npm run lint` is now `eslint .` with a flat config (`eslint.config.mjs`); this also closes audit L7. React 19's new `react-hooks/set-state-in-effect` rule is set to **warn** (2 existing forms trip it; revisit per module).
 - `next/og` works on Windows now: OG/Twitter/icon/apple-icon are `app/*.jsx` routes backed by `lib/brand-image.jsx`; the satori/resvg script, `npm run brand:images`, those two dependencies and the static PNGs are removed. `@fontsource/playfair-display` stays (font source).
 - New `npm run test:pdf` renders a tiny PDF with react-pdf v4 (passes).
+- **Bug fixed: blank homepage after client-side navigation** (from /register, /privacy, browser Back). Cause: `MarketingEffects` lives in the marketing layout, which persists across routes; it ran once, set `data-reveal` on the persistent `.nz-home` root and never removed it, so the freshly mounted homepage sections (no `in` class) stayed at `opacity:0`. Fix: the effect re-initialises on every pathname change and removes `data-reveal` on cleanup, so the hidden state only exists while it is live. The IntersectionObserver became a scroll sweep (reveals anything at or above the viewport edge, and everything at page end), because fast scrolling or a hash jump could skip past the observer and strand a section.
+- New `npm run test:nav` (playwright-core + installed Chrome/Edge, run against a dev server on :3100): navigates client-side from /register and /privacy via the logo, `/#waitlist` and Back, and asserts content is visible and nothing stays hidden after scrolling. 15 checks; on the old code it fails with 20 hidden sections.
+- CSP stays report-only; enforcing is postponed until after the homepage redesign. `AGENTS.md` (written by the Next 16 dev server) is in `.gitignore`.
 - `npm audit`: 14 → 9 (0 critical). Remaining are Tailwind 3 / eslint-config-next build-time chains, listed in `docs/AUDIT.md` as known/low risk.
 
 ### Verification
@@ -15,7 +18,6 @@
 
 ### Decisions / notes
 - Tailwind 4 skipped on purpose. `next dev` refuses a second server in the same folder (use one at a time). Next 16 dev writes an `AGENTS.md`; not committed (`agentRules` could disable it).
-- CSP is still report-only; switching to enforcing waits for a manual browser-console check.
 
 ### Next session
 Roles expansion (roadmap module 1).
