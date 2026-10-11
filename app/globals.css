@@ -76,3 +76,66 @@ body {
   body { background: white; }
   @page { margin: 10mm; size: A4; }
 }
+
+/* ==========================================================================
+   Nizamo app design tokens (dashboard, login, admin). One place, used by Tailwind via
+   tailwind.config.js. Warm neutrals are derived from cream (#F5F0E8) and espresso (#2C1810).
+   Terracotta is the ONLY accent. Every text/background pair below was checked for WCAG AA
+   (>= 4.5:1 for text): see the contrast table in docs/DESIGN.md.
+   ========================================================================== */
+:root {
+  /* surfaces */
+  --bg: #F5F0E8;          /* page */
+  --surface: #FBF8F3;     /* cards, inputs, popovers */
+  --sunken: #EDE6D9;      /* sidebar, table header, wells */
+  --sidebar: #EFE8DB;
+  --line: #E4DACA;        /* hairline borders */
+  --line-strong: #CFC2AE; /* input borders, dividers that must be seen */
+
+  /* text */
+  --text: #2C1810;        /* 14.9:1 on page */
+  --text-2: #5B4A3D;      /* 7.4:1 */
+  --text-3: #75634F;      /* 5.1:1 — lowest allowed text colour */
+
+  /* the one accent */
+  --accent: #C4622D;          /* indicators, icons, large shapes (3.9:1 on surface) */
+  --accent-strong: #B5551F;   /* button fill, white text 4.9:1 */
+  --accent-text: #A4491A;     /* links and small accent text, 5.2:1 on page */
+  --accent-soft: #F2E1D3;     /* tinted backgrounds, active nav item */
+
+  /* muted semantics (fit the palette; never used for decoration) */
+  --ok: #2F6B4F;   --ok-soft: #E1ECE4;
+  --warn: #80570B; --warn-soft: #F3E6C8;
+  --bad: #9E3128;  --bad-soft: #F3DCD8;
+
+  /* shape */
+  --r-ctl: 8px;    /* buttons, inputs */
+  --r-card: 12px;  /* cards, modals */
+  --shadow-xs: 0 1px 2px rgba(44, 24, 16, 0.05);
+  --shadow-pop: 0 10px 30px rgba(44, 24, 16, 0.12), 0 2px 6px rgba(44, 24, 16, 0.06);
+
+  /* layout */
+  --nav-w: 256px;
+  --nav-w-collapsed: 64px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes nzSpin { to { transform: rotate(360deg); } }
+@keyframes nzPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes nzPop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes nzSlideIn { from { transform: translateX(-100%); } to { transform: none; } }
+.nz-spin { animation: nzSpin 0.8s linear infinite; }
+.nz-skeleton { background: var(--sunken); animation: nzPulse 1.6s ease-in-out infinite; }
+.nz-pop { animation: nzPop 0.16s ease-out both; }
+.nz-slide-in { animation: nzSlideIn 0.2s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nz-spin, .nz-skeleton, .nz-pop, .nz-slide-in { animation: none; }
+}
+
+/* Urdu text */
+.ur { font-family: var(--font-urdu), 'Noto Naskh Arabic', 'Segoe UI', serif; line-height: 2; }

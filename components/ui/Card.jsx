@@ -1,46 +1,22 @@
 import clsx from 'clsx'
 
-export function Card({ children, className, animate, ...props }) {
+// A card is a quiet surface: hairline border, almost no shadow. Use padding={false} for tables.
+export function Card({ children, className, padding = true, as: Tag = 'section', ...props }) {
   return (
-    <div
-      className={clsx(
-        'bg-warm-white border-[1.5px] border-[rgba(92,61,46,0.12)] rounded-lg p-5',
-        animate && 'animate-fade-up',
-        className
-      )}
-      {...props}
-    >
+    <Tag className={clsx('rounded-card border border-line bg-surface shadow-xs', padding && 'p-5', className)} {...props}>
       {children}
-    </div>
+    </Tag>
   )
 }
 
-export function CardHeader({ children, className }) {
+export function CardHeader({ title, description, action, className }) {
   return (
-    <div className={clsx('flex justify-between items-center mb-[18px]', className)}>
-      {children}
+    <div className={clsx('flex items-start justify-between gap-4', className)}>
+      <div className="min-w-0">
+        <h2 className="text-lead font-semibold text-ink">{title}</h2>
+        {description && <p className="mt-0.5 text-label text-ink-3">{description}</p>}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
     </div>
-  )
-}
-
-export function CardTitle({ children, className }) {
-  return (
-    <div className={clsx('font-serif text-[15px] text-text-dark', className)}>
-      {children}
-    </div>
-  )
-}
-
-export function CardAction({ children, className, ...props }) {
-  return (
-    <a
-      className={clsx(
-        'text-xs text-terracotta cursor-pointer font-medium no-underline hover:underline',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </a>
   )
 }
