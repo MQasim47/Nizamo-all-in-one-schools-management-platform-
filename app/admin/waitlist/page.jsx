@@ -7,7 +7,8 @@ import { WAITLIST_STATUSES } from '@/lib/waitlist-options'
 
 export const metadata = { title: 'Waitlist' }
 
-export default async function WaitlistPage({ searchParams }) {
+export default async function WaitlistPage(props) {
+  const searchParams = await props.searchParams;
   const session = await requireSession()
   const status = WAITLIST_STATUSES.includes(searchParams?.status) ? searchParams.status : ''
   const q = (searchParams?.q || '').toString().slice(0, 60)

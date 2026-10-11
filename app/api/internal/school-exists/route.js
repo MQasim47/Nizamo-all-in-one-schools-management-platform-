@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { detectSchoolBySubdomain } from '@/lib/db/admin/schools'
 
-// Used only by middleware.js to turn unknown subdomains into a 404. Guarded by a header carrying
+// Used only by proxy.js to turn unknown subdomains into a 404. Guarded by a header carrying
 // NEXTAUTH_SECRET so it can't be probed from outside (and isn't subject to the public limiter).
 export async function GET(request) {
   const given = Buffer.from(request.headers.get('x-nz-internal') || '')

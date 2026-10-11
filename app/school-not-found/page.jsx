@@ -5,7 +5,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 }
 
-// Served (with a 404 status, via middleware) for any unknown school address.
+// Served (with a 404 status, via the proxy) for any unknown school address.
 export default function SchoolNotFound() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-cream p-6">

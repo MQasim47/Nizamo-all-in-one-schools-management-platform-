@@ -153,3 +153,9 @@ Fix: one token set, load Playfair + Inter via `next/font`, decide on the logo ma
 | "Get started"/"Register" 404 | `/register` route missing (`page.jsx:79,90,288,304`) |
 | Counters/bars reset or never run on re-render | Direct DOM mutation of React nodes (`page.jsx:32-48`) |
 | No CSS leak into the dashboard | Confirmed none: every rule in `home.css` is under `.nz-home` (keyframes are `nz`-prefixed) |
+
+## Session 4 status (framework upgrade)
+
+C1 is now fully closed: Next 16.4.0, React 19.3, next-auth 4.24.15 (v4 declares Next 16 / React 19 support and the live login passes). `npm audit` went from 14 to 9 findings (0 critical); every Next.js advisory is gone. L7 is fixed (`eslint.config.mjs`, `npm run lint`).
+
+Remaining 9 are **known, low risk, build-time only**: Tailwind 3's dependency chain (`braces`, `micromatch`, `fast-glob`, `chokidar`, `postcss-nested`, `postcss-selector-parser`) and `eslint-config-next`'s copy of `fast-glob`. They process our own source files on developer/CI machines and never run in the deployed app or on user input. The only npm "fix" is Tailwind 4 (breaking), deferred on purpose; revisit with a design-system pass.

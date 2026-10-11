@@ -3,7 +3,8 @@ import { requireApiSession } from '@/lib/auth/session'
 import { ForbiddenError } from '@/lib/db/admin/schools'
 import { updateWaitlistStatus } from '@/lib/db/admin/waitlist'
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, props) {
+  const params = await props.params;
   const { session, error } = await requireApiSession()
   if (error) return error
 

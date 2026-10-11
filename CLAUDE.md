@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<subdomain>.getnizamo.com`, always via `NEXT_PUBLIC_ROOT_DOMAIN`): multi-tenant school management SaaS for Pakistani schools, migrated from a PHP MVP. Next.js 14 (App Router, JavaScript/JSX, no TypeScript) + Supabase (Postgres) + NextAuth (credentials/JWT) + Tailwind. Many logic ports are meant to "match the PHP MVP exactly" (e.g. grade thresholds in `lib/utils/grades.js`), so preserve behavior when changing them.
+Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<subdomain>.getnizamo.com`, always via `NEXT_PUBLIC_ROOT_DOMAIN`): multi-tenant school management SaaS for Pakistani schools, migrated from a PHP MVP. Next.js 16 + React 19 (App Router, JavaScript/JSX, no TypeScript) + Supabase (Postgres) + NextAuth (credentials/JWT) + Tailwind. Many logic ports are meant to "match the PHP MVP exactly" (e.g. grade thresholds in `lib/utils/grades.js`), so preserve behavior when changing them.
 
 ## Commands
 
 - `npm run dev` — dev server at http://localhost:3000
 - `npm run build` / `npm start` — production build / serve
-- `npm run lint` — `next lint`
+- `npm run lint` — `eslint .` (flat config in `eslint.config.mjs`; `next lint` no longer exists in Next 16)
 - `npm run test:unit` — unit tests (`tests/`: phone normaliser, CSV safety).
 - `npm run test:waitlist` — waitlist/admin/register API checks against a running server (`TEST_BASE=http://localhost:3100`, start it with `npm run dev -- -p 3100`).
-- `npm run brand:images` — regenerates the static OG/Twitter/icon PNGs in `app/` (`next/og` is broken on Windows in Next 14.2, so images are pre-rendered).
+- `npm run test:pdf` — proves `@react-pdf/renderer` renders a PDF (needed for SLC, marksheets, challans).
 - `npm run test:tenant` — proves tenant isolation through per-user tokens against the dev project (seeds and removes two throwaway schools). Run after any schema/policy change.
 - `npm run demo:passwords` — gives the demo accounts unique strong passwords (writes `.env.local`).
 - `npm run check:db` — backend health check ([scripts/check-db.mjs](scripts/check-db.mjs)): Supabase reachable, schema matches the columns the code uses, demo school `ghs` exists, NextAuth login path works. Run it first when anything backend-related breaks (free Supabase projects pause when idle).
@@ -24,7 +24,7 @@ Local login: `http://localhost:3000/login?school=ghs` (seed users e.g. `principa
 
 ## Architecture
 
-**Multi-tenancy by subdomain.** [middleware.js](middleware.js) derives the school subdomain from the host (needs `NEXT_PUBLIC_ROOT_DOMAIN`, e.g. `ghs.getnizamo.com` → `ghs`; on exact `localhost` it uses `?school=`) and forwards it as the `x-school-subdomain` header, which the login page reads. It guards `/school/*` (and `/admin/*`, superadmin only) with a NextAuth JWT and redirects to `/signed-out` if the token's school differs from the host's. Unknown school subdomains get a 404 (`/school-not-found`, via the guarded `/api/internal/school-exists`), `www` redirects to the apex, a school's own `/` goes to its login, and every school address is `X-Robots-Tag: noindex`.
+**Multi-tenancy by subdomain.** [proxy.js](proxy.js) (Next 16 name for middleware) derives the school subdomain from the host (needs `NEXT_PUBLIC_ROOT_DOMAIN`, e.g. `ghs.getnizamo.com` → `ghs`; on exact `localhost` it uses `?school=`) and forwards it as the `x-school-subdomain` header, which the login page reads. It guards `/school/*` (and `/admin/*`, superadmin only) with a NextAuth JWT and redirects to `/signed-out` if the token's school differs from the host's. Unknown school subdomains get a 404 (`/school-not-found`, via the guarded `/api/internal/school-exists`), `www` redirects to the apex, a school's own `/` goes to its login, and every school address is `X-Robots-Tag: noindex`.
 
 **Auth.** [lib/auth/options.js](lib/auth/options.js): Credentials provider (email + password + subdomain, bcrypt, zod-validated), 24h JWT, lockout after 5 consecutive failures for 15 min (`login_attempts`, identifier is a hash, never the email). The token is only a ticket: [lib/auth/session.js](lib/auth/session.js) `requireSession({permission})` (pages/layouts) and `requireApiSession(permission)` (route handlers) re-check on every request (cached 60s) that the user is active and the school not suspended, and return the CURRENT role from the DB. Never call `getServerSession` directly.
 

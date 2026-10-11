@@ -29,10 +29,11 @@ function demoAccounts(subdomain) {
   return []
 }
 
-export default async function LoginPage({ searchParams }) {
+export default async function LoginPage(props) {
+  const searchParams = await props.searchParams;
   // The middleware derives the school from the host (or ?school= on localhost) and sets this
   // header; ?school= is also accepted when the app is served from the root domain.
-  const raw = headers().get('x-school-subdomain') || searchParams?.school || ''
+  const raw = (await headers()).get('x-school-subdomain') || searchParams?.school || ''
   const parsed = subdomainSchema.safeParse(raw)
   const subdomain = parsed.success ? parsed.data : ''
 

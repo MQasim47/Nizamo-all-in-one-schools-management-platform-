@@ -39,7 +39,7 @@ async function schoolExists(req, subdomain) {
   return exists
 }
 
-export async function middleware(req) {
+export async function proxy(req) {
   const { pathname } = req.nextUrl
   const host = readHost(req)
 

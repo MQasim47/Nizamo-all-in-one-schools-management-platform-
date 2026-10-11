@@ -78,7 +78,7 @@ export default function LoginForm({ subdomain, schoolName, schoolFound, demo, ro
             <span className="text-gold">{schoolName}</span>
           </h1>
           <p className="text-[13px] leading-relaxed text-[rgba(251,248,243,0.5)] max-w-[300px]">
-            Your school's private management portal. Track attendance, results,
+            Your school&apos;s private management portal. Track attendance, results,
             homework — all in one place.
           </p>
         </div>

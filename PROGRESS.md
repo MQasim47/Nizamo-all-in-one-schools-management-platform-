@@ -1,5 +1,28 @@
 # PROGRESS
 
+## Session 4 — framework upgrade (branch `session-04-upgrade`)
+
+### Done
+- Next 14.2.35 → **16.4.0**, React 18 → **19.3.0**, eslint-config-next 16.4.0 + ESLint 9, `@react-pdf/renderer` 3 → **4.9**, `lucide-react` bumped (old peer range excluded React 19). next-auth stays on 4.24.15 (its peer range includes Next 16 / React 19; confirmed by a live login).
+- Codemods used: `next-async-request-api` (login page, admin waitlist page, waitlist `[id]` route) and `middleware-to-proxy` (`middleware.js` → `proxy.js`). Comments/docs updated.
+- `next lint` is gone in Next 16: `npm run lint` is now `eslint .` with a flat config (`eslint.config.mjs`); this also closes audit L7. React 19's new `react-hooks/set-state-in-effect` rule is set to **warn** (2 existing forms trip it; revisit per module).
+- `next/og` works on Windows now: OG/Twitter/icon/apple-icon are `app/*.jsx` routes backed by `lib/brand-image.jsx`; the satori/resvg script, `npm run brand:images`, those two dependencies and the static PNGs are removed. `@fontsource/playfair-display` stays (font source).
+- New `npm run test:pdf` renders a tiny PDF with react-pdf v4 (passes).
+- `npm audit`: 14 → 9 (0 critical). Remaining are Tailwind 3 / eslint-config-next build-time chains, listed in `docs/AUDIT.md` as known/low risk.
+
+### Verification
+`npm run build` (Turbopack), `npm run lint` (0 errors), `test:unit` 5/5, `test:pdf`, `check:db`, `test:tenant` 57/57, `test:waitlist` 19/19. Live on the dev server with `NEXT_PUBLIC_ROOT_DOMAIN=nizamo.test`: `ghs.` host shows the GHS login; unknown host 404; `www` 308 to apex; school `/` → `/login`; wrong password 401, right password gives a session with the correct role/school; dashboard 200 on own host, redirect to `/signed-out?reason=wrong-school` on another school's host; no session → login.
+
+### Decisions / notes
+- Tailwind 4 skipped on purpose. `next dev` refuses a second server in the same folder (use one at a time). Next 16 dev writes an `AGENTS.md`; not committed (`agentRules` could disable it).
+- CSP is still report-only; switching to enforcing waits for a manual browser-console check.
+
+### Next session
+Roles expansion (roadmap module 1).
+
+---
+
+
 ## Session 3 — marketing site, register, waitlist, legal, technical SEO (branch `session-03-marketing`, merged to main)
 
 ### Done
