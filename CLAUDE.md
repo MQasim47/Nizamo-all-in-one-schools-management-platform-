@@ -14,6 +14,7 @@ Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<s
 - `npm run test:unit` — unit tests (`tests/`: phone normaliser, CSV safety).
 - `npm run test:waitlist` — waitlist/admin/register API checks against a running server (`TEST_BASE=http://localhost:3100`, start it with `npm run dev -- -p 3100`).
 - `npm run test:pdf` — proves `@react-pdf/renderer` renders a PDF (needed for SLC, marksheets, challans).
+- `npm run test:nav` — browser regression test (needs a dev server on :3100 and Chrome/Edge): client-side navigation back to the homepage must never leave it blank.
 - `npm run test:tenant` — proves tenant isolation through per-user tokens against the dev project (seeds and removes two throwaway schools). Run after any schema/policy change.
 - `npm run demo:passwords` — gives the demo accounts unique strong passwords (writes `.env.local`).
 - `npm run check:db` — backend health check ([scripts/check-db.mjs](scripts/check-db.mjs)): Supabase reachable, schema matches the columns the code uses, demo school `ghs` exists, NextAuth login path works. Run it first when anything backend-related breaks (free Supabase projects pause when idle).
