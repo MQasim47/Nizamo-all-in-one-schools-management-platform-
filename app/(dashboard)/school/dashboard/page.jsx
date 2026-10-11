@@ -1,35 +1,59 @@
 import { requireSession } from '@/lib/auth/session'
-import Topbar from '@/components/layout/Topbar'
+import { can } from '@/lib/auth/permissions.mjs'
+import { getPrincipalSummary } from '@/lib/db/dashboard'
+import { listWaitlist } from '@/lib/db/admin/waitlist'
+import PrincipalHome from '@/components/dashboard/PrincipalHome'
+import PageHeader from '@/components/ui/PageHeader'
+import { Card } from '@/components/ui/Card'
+import EmptyState from '@/components/ui/EmptyState'
+import ErrorState from '@/components/ui/ErrorState'
+import { GlanceList } from '@/components/ui/StatCard'
+import Button from '@/components/ui/Button'
+import { formatHijri, formatLongPk, greetingPk } from '@/lib/utils/dates.mjs'
+import { formatNumber } from '@/lib/utils/money.mjs'
 
-// Temporary placeholder — full dashboard with stats comes in next build phase.
-// This exists so login has somewhere to land without a 404.
+export const metadata = { title: 'Dashboard' }
+
+async function PlatformHome({ session }) {
+  let waiting = null
+  try {
+    waiting = (await listWaitlist(session, { status: 'new' })).length
+  } catch {}
+  const now = new Date()
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title={`${greetingPk(now)}, ${session.user.name}`}
+        description={`${formatLongPk(now)} | ${formatHijri(now)} AH`}
+      />
+      <Card padding={false}>
+        {waiting === null ? (
+          <ErrorState title="The waitlist could not be loaded" />
+        ) : waiting === 0 ? (
+          <EmptyState title="No new requests" description="When a school joins the waitlist from the website, it appears here." action={<Button href="/admin/waitlist" variant="secondary">Open the waitlist</Button>} />
+        ) : (
+          <GlanceList items={[{ label: 'New waitlist requests', value: formatNumber(waiting), detail: 'Schools waiting to hear from you', href: '/admin/waitlist', action: true }]} />
+        )}
+      </Card>
+    </div>
+  )
+}
+
 export default async function DashboardPage() {
   const session = await requireSession()
+  if (session.user.role === 'superadmin') return <PlatformHome session={session} />
 
+  const summary = await getPrincipalSummary(session)
   return (
-    <>
-      <Topbar title="Dashboard" />
-      <div className="p-[26px] flex-1">
-        <div className="animate-fade-up">
-          <h1 className="font-serif text-2xl text-text-dark">
-            Welcome, {session?.user?.name}! 👋
-          </h1>
-          <p className="text-xs text-text-light mt-1">
-            {session?.user?.schoolName} — logged in as {session?.user?.role}
-          </p>
-        </div>
-
-        <div className="mt-6 bg-warm-white border-[1.5px] border-[rgba(92,61,46,0.12)] rounded-lg p-8 text-center animate-fade-up-2">
-          <div className="text-4xl mb-3">🎉</div>
-          <div className="font-serif text-lg text-text-dark mb-2">
-            Migration foundation is working!
-          </div>
-          <div className="text-[13px] text-text-light">
-            Login, auth, database and layout are connected. The full dashboard
-            with stats, recent submissions and attendance overview is the next build step.
-          </div>
-        </div>
-      </div>
-    </>
+    <PrincipalHome
+      name={session.user.name}
+      glance={summary.glance}
+      glanceFailed={summary.glanceFailed}
+      activity={summary.activity}
+      activityFailed={summary.activityFailed}
+      showActivity={summary.canSeeActivity}
+      checklist={can(session.user.role, 'settings.write') ? summary.checklist : undefined}
+      hijriOffset={summary.settings.hijriOffset}
+    />
   )
 }

@@ -38,7 +38,7 @@ export function Tabs({ tabs, value, onChange, label = 'Sections', idBase = 'tabs
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(t.id)}
             className={clsx(
-              '-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-body font-medium transition-colors',
+              '-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-body font-medium transition-colors duration-150 ease-out',
               active ? 'border-accent text-ink' : 'border-transparent text-ink-3 hover:text-ink'
             )}
           >

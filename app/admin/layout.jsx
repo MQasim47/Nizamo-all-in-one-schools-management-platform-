@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { requireSession } from '@/lib/auth/session'
 import { assertSuperadmin, ForbiddenError } from '@/lib/db/admin/schools'
-import DashboardLayout from '@/components/layout/DashboardLayout'
+import { buildNav } from '@/lib/nav.mjs'
+import SchoolShell from '@/components/shell/SchoolShell'
 
 // Platform super-admin area. Never indexed.
 export const metadata = {
@@ -17,5 +18,10 @@ export default async function AdminLayout({ children }) {
     if (e instanceof ForbiddenError) redirect('/school/dashboard')
     throw e
   }
-  return <DashboardLayout>{children}</DashboardLayout>
+  const { name, email } = session.user
+  return (
+    <SchoolShell brand={{ name: 'Nizamo Admin', subtitle: 'Platform' }} nav={buildNav('superadmin')} user={{ name, email, roleLabel: 'Platform admin' }}>
+      {children}
+    </SchoolShell>
+  )
 }

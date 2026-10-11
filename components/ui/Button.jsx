@@ -22,13 +22,14 @@ export default function Button({
   loading = false,
   leftIcon: LeftIcon,
   href,
+  external = false, // plain <a> (downloads, other sites) instead of a client-side Link
   className,
   disabled,
   type = 'button',
   ...props
 }) {
   const cls = clsx(
-    'inline-flex shrink-0 items-center justify-center rounded-ctl font-medium whitespace-nowrap transition-colors',
+    'inline-flex shrink-0 items-center justify-center rounded-ctl font-medium whitespace-nowrap transition-[background-color,border-color,color,transform] duration-150 ease-out active:translate-y-px',
     'disabled:cursor-not-allowed disabled:opacity-50',
     VARIANTS[variant],
     SIZES[size],
@@ -41,11 +42,12 @@ export default function Button({
   ) : null
 
   if (href && !disabled && !loading) {
+    const A = external ? 'a' : Link
     return (
-      <Link href={href} className={cls} {...props}>
+      <A href={href} className={cls} {...props}>
         {icon}
         {children}
-      </Link>
+      </A>
     )
   }
   return (

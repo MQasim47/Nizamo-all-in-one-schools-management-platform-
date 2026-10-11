@@ -3,24 +3,21 @@ import clsx from 'clsx'
 import { ChevronRight } from 'lucide-react'
 import { Card } from './Card'
 
-const BAR = { neutral: 'bg-ink-3', accent: 'bg-accent', success: 'bg-ok', warning: 'bg-warn', danger: 'bg-bad' }
+// Accent discipline: numbers and bars are espresso. Terracotta (`action`) is reserved for
+// something that needs the reader to DO something ("5 classes not marked", overdue fees).
 
 // One number with context. The value is the only large serif text on the card.
-export function StatCard({ label, value, detail, href, progress, tone = 'neutral', className }) {
+export function StatCard({ label, value, detail, href, progress, action = false, className }) {
   const body = (
     <>
       <p className="text-label font-medium text-ink-3">{label}</p>
-      <p className="mt-2 font-serif text-stat text-ink lining-nums tabular-nums">{value}</p>
-      {typeof progress === 'number' && (
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
-          <div className={clsx('h-full rounded-full', BAR[tone])} style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} />
-        </div>
-      )}
+      <p className={clsx('mt-2 font-serif text-stat lining-nums tabular-nums', action ? 'text-accent-text' : 'text-ink')}>{value}</p>
+      {typeof progress === 'number' && <Progress value={progress} label={label} action={action} className="mt-3" />}
       {detail && <p className="mt-2 text-label text-ink-3">{detail}</p>}
     </>
   )
   return href ? (
-    <Link href={href} className={clsx('block rounded-card border border-line bg-surface p-5 shadow-xs transition-colors hover:border-line-strong hover:bg-bg', className)}>
+    <Link href={href} className={clsx('block rounded-card border border-line bg-surface p-5 shadow-xs transition-colors duration-150 ease-out hover:border-line-strong hover:bg-bg', className)}>
       {body}
     </Link>
   ) : (
@@ -28,9 +25,17 @@ export function StatCard({ label, value, detail, href, progress, tone = 'neutral
   )
 }
 
+function Progress({ value, label, action, className }) {
+  return (
+    <div className={clsx('h-1.5 overflow-hidden rounded-full bg-sunken', className)} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <div className={clsx('h-full rounded-full', action ? 'bg-accent' : 'bg-ink')} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+    </div>
+  )
+}
+
 // "Today at a glance": one card, one row per fact, each row a link to where you act on it.
 // This reads as a briefing, not a wall of identical boxes.
-// items: [{ label, value, detail, href, tone, progress }]
+// items: [{ label, value, detail, href?, action?, progress? }]
 export function GlanceList({ items }) {
   return (
     <ul className="divide-y divide-line">
@@ -40,13 +45,9 @@ export function GlanceList({ items }) {
             <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
               <p className="text-body font-medium text-ink">{it.label}</p>
               {it.detail && <p className="mt-0.5 text-label text-ink-3">{it.detail}</p>}
-              {typeof it.progress === 'number' && (
-                <div className="mt-2 h-1.5 max-w-[240px] overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuenow={Math.round(it.progress)} aria-valuemin={0} aria-valuemax={100} aria-label={it.label}>
-                  <div className={clsx('h-full rounded-full', BAR[it.tone || 'accent'])} style={{ width: `${Math.max(0, Math.min(100, it.progress))}%` }} />
-                </div>
-              )}
+              {typeof it.progress === 'number' && <Progress value={it.progress} label={it.label} action={it.action} className="mt-2 max-w-[240px]" />}
             </div>
-            <p className={clsx('order-first shrink-0 basis-full text-left sm:order-none sm:basis-auto sm:text-right font-serif text-[24px] leading-none lining-nums tabular-nums', it.tone === 'danger' ? 'text-bad' : it.tone === 'warning' ? 'text-warn' : 'text-ink')}>{it.value}</p>
+            <p className={clsx('order-first shrink-0 basis-full text-left font-serif text-[24px] leading-none lining-nums tabular-nums sm:order-none sm:basis-auto sm:text-right', it.action ? 'text-accent-text' : 'text-ink')}>{it.value}</p>
             {it.href && <ChevronRight size={16} strokeWidth={1.75} className="hidden shrink-0 text-ink-3 sm:block" aria-hidden="true" />}
           </>
         )
@@ -54,7 +55,7 @@ export function GlanceList({ items }) {
         return (
           <li key={it.label}>
             {it.href ? (
-              <Link href={it.href} className={clsx(cls, 'transition-colors hover:bg-bg')}>{inner}</Link>
+              <Link href={it.href} className={clsx(cls, 'transition-colors duration-150 ease-out hover:bg-bg')}>{inner}</Link>
             ) : (
               <div className={cls}>{inner}</div>
             )}

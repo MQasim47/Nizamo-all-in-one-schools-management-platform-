@@ -43,6 +43,7 @@ export default async function LoginPage(props) {
     <LoginForm
       subdomain={subdomain}
       schoolName={school?.school_name || 'Nizamo'}
+      logoUrl={school?.logo_url || null}
       schoolFound={!!school}
       demo={school ? demoAccounts(subdomain) : []}
       rootDomain={ROOT_DOMAIN}

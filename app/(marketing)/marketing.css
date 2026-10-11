@@ -45,8 +45,6 @@
 .nz-home [data-nz-nav].scrolled { background: rgba(245, 240, 232, .92); backdrop-filter: blur(14px); border-bottom-color: var(--line); }
 .nz-home .nav-in { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .nz-home .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
-.nz-home .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--espresso); color: var(--cream); display: grid; place-items: center; font-family: var(--font-playfair), serif; font-size: 17px; font-weight: 600; }
-.nz-home .logo-text { font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
 .nz-home .nav-links { display: none; gap: 30px; }
 .nz-home .nav-links a { font-size: 14px; color: var(--ink-soft); text-decoration: none; }
 .nz-home .nav-links a:hover { color: var(--terra); }
@@ -146,7 +144,6 @@
 .nz-home .foot-in { display: grid; gap: 32px; }
 .nz-home .foot-brand p { font-size: 14px; max-width: 34ch; margin-top: 12px; }
 .nz-home .foot-brand .logo { color: var(--cream); }
-.nz-home .foot-brand .logo-mark { background: var(--terra); color: #fff; }
 .nz-home .foot-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
 .nz-home .foot-col h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: rgba(245, 240, 232, .45); margin-bottom: 14px; font-weight: 600; }
 .nz-home .foot-col a { display: block; font-size: 14px; color: rgba(245, 240, 232, .8); text-decoration: none; margin-bottom: 10px; }

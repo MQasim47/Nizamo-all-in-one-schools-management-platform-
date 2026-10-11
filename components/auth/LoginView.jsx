@@ -23,6 +23,22 @@ function SchoolMark({ name, logoUrl, size }) {
   )
 }
 
+// Very quiet texture made of the logo's three thin vertical lines (3.5% opacity, decorative only).
+function LinePattern() {
+  return (
+    <svg aria-hidden="true" focusable="false" className="pointer-events-none absolute inset-0 h-full w-full" style={{ opacity: 0.03 }}>
+      <defs>
+        <pattern id="nz-lines" width="96" height="96" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="4" height="96" fill="#2C1810" />
+          <rect x="8" y="0" width="4" height="96" fill="#2C1810" />
+          <rect x="16" y="0" width="4" height="96" fill="#2C1810" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#nz-lines)" />
+    </svg>
+  )
+}
+
 export default function LoginView({
   schoolName,
   logoUrl,
@@ -43,18 +59,19 @@ export default function LoginView({
   return (
     <div className={clsx('grid bg-bg text-ink lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]', embedded ? 'min-h-[640px]' : 'min-h-screen')}>
       {/* the school */}
-      <aside className="hidden flex-col justify-between border-r border-line bg-sidebar p-12 lg:flex">
-        <div className="flex items-center gap-3">
+      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-sidebar p-12 lg:flex">
+        <LinePattern />
+        <div className="relative flex items-center gap-3">
           <SchoolMark name={schoolName} logoUrl={logoUrl} size={44} />
           <p className="text-caption font-semibold uppercase tracking-wider text-ink-3">School portal</p>
         </div>
-        <div>
+        <div className="relative">
           <p className="ur text-lead text-ink-2" lang="ur">خوش آمدید</p>
           <h1 className="mt-2 font-serif text-[40px] leading-[1.15] text-ink">{schoolName}</h1>
           {addressLabel && <p className="mt-3 text-body text-ink-3">{addressLabel}</p>}
         </div>
-        <p className="flex items-center gap-2 text-label text-ink-3">
-          <LogoMark size="sm" />
+        <p className="relative flex items-center gap-2 text-label text-ink-3">
+          <LogoMark size={20} />
           Powered by Nizamo
         </p>
       </aside>
@@ -120,7 +137,7 @@ export default function LoginView({
           )}
 
           <p className="mt-10 flex items-center gap-2 text-caption text-ink-3 lg:hidden">
-            <LogoMark size="sm" />
+            <LogoMark size={20} />
             Powered by Nizamo
           </p>
         </div>

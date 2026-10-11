@@ -1,5 +1,36 @@
 # PROGRESS
 
+## Session 5 — app UI redesign (branch `session-05-app-ui`, NOT merged yet: waiting for the founder's browser check)
+
+### Done
+- **Design system** (`docs/DESIGN.md`, dev-only preview at `/design`, 404 in production): warm-neutral tokens in `app/globals.css` + Tailwind, terracotta as the only accent, muted semantics (all text pairs >= 4.5:1), Inter for UI, Playfair only for page titles and big numbers.
+- **Components** (`components/ui`): Logo, Button (primary terracotta / secondary / ghost / danger, loading, pressed state), Input / PasswordInput / Select / Textarea, Card, Badge, Alert, Modal (focus trap), Menu, DataTable (sortable, sticky header, comfortable/compact density remembered per user, skeleton + error states, phone cards), EmptyState, ErrorState, PageHeader, StatCard / GlanceList, Skeleton, Tabs, Toast.
+- **Logo**: hand-built SVG from `docs/brand/logo-reference.jpg` (`lib/brand-mark.mjs`, one geometry source). Full mark >= 48px, simplified mark below that and for the favicon / Apple icon / social card. Variants: mark, horizontal, stacked, reverse, one-colour; optional tagline (off). Placeholder "N" and the graduation cap are gone everywhere (marketing, app, login, icons).
+- **App shell** (`components/shell/AppShell.jsx`, wired in `app/(dashboard)/school/layout.jsx` and `app/admin/layout.jsx`): light warm sidebar showing the school's own name/logo, grouped permission-driven menu (`lib/nav.mjs`; unbuilt modules hidden via `built: false`), collapsible on desktop, drawer on mobile, topbar with breadcrumb, session pill, Ctrl/Cmd+K search stub, profile menu, "Powered by Nizamo". Super admin uses the same shell (Dashboard, Waitlist).
+- **Dashboard** (`components/dashboard/PrincipalHome.jsx`, `lib/db/dashboard.js`): time-aware greeting (Pakistan time), Gregorian + Hijri date, "Today at a glance" built only from facts that exist (links only to built pages), "Set up your school" checklist (session, classes, subjects, staff, students; unbuilt steps say "Coming soon"), recent activity in plain language from `audit_log` (principal only), empty / loading / error states.
+- **Hijri date adjustment**: `school_settings.hijri_offset` (-2..+2, default -1), editable at `/school/settings` (principal) via `PATCH /api/school/settings` (zod strict whitelist, `settings.write`, RLS + audit trigger). **Migration `supabase/migrations/004_hijri_offset.sql` must be run in the Supabase SQL editor** (also added to `schema.sql`). Until then the app uses -1 and saving shows a friendly error; `npm run check:db` reports the missing column.
+- **Login**: `LoginView` (school identity panel with the school's logo or initials monogram and a 3%-opacity pattern from the logo's lines; form with show/hide password, inline errors, lockout message, "Forgot password? Contact your school admin", Urdu line, "Powered by Nizamo"). `LoginForm` keeps the same NextAuth sign-in.
+- **Waitlist page** rebuilt with the new components. Old `Sidebar` / `Topbar` / `DashboardLayout` deleted.
+- Shared money formatter (`lib/utils/money.mjs`, Pakistani grouping, Rs. 18,40,000) behind `formatCurrency` / `formatNumber`; `lib/utils/dates.mjs` (Pakistan-time helpers); `initials()` fixed (audit L10).
+
+### Verification
+`npm run build`, lint (0 errors), `test:unit` 13/13, `test:pdf`, `test:tenant` 57/57, `test:waitlist` 19/19, `test:nav` 15/15, new `test:app` 19/19 (settings API 401/403/400 cases, per-role menus and blocks). `check:db` fails only on `school_settings.hijri_offset` until migration 004 is run. Live Chrome run (login as principal and super admin, wrong-password state, settings, waitlist) at 1366 and 360px: no horizontal overflow, no console errors beyond the expected 401.
+
+### Decisions / notes
+- Security behaviour unchanged: same NextAuth sign-in, `requireSession`, `getSchoolClient`, RLS. New API route follows the same pattern.
+- The pending-approvals nav badge query was dropped from the layout (the module is not built; it returns with Exams + approvals).
+- Hijri: Umm al-Qura tables shifted by the school's adjustment.
+- `AppShell` accepts either `icon` components (preview) or `iconName` (server layouts).
+- Dev helpers: `scripts/design-shots.mjs`, `scripts/shot-one.mjs`, `scripts/shot-app.mjs` (screenshots through real Chrome).
+
+### Known issues / next
+- Run migration 004 (SQL editor) before using the Hijri setting.
+- CSP still report-only; enforce after the homepage redesign.
+- Modules still to build per the roadmap; the dashboard and menu fill in as they land.
+
+---
+
+
 ## Session 4 — framework upgrade (branch `session-04-upgrade`)
 
 ### Done

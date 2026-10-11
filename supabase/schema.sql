@@ -54,6 +54,7 @@ CREATE TABLE school_settings (
   logo_url             TEXT,
   marksheet_footer     TEXT,
   passing_percentage   NUMERIC(5,2) DEFAULT 40.00,
+  hijri_offset         SMALLINT NOT NULL DEFAULT -1 CHECK (hijri_offset BETWEEN -2 AND 2),
   created_at           TIMESTAMPTZ DEFAULT NOW(),
   updated_at           TIMESTAMPTZ DEFAULT NOW()
 );

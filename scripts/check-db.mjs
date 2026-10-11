@@ -20,7 +20,7 @@ const REQUIRED = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', '
 const EXPECTED = {
   schools: 'id,school_name,subdomain,email,phone,city,address,plan,trial_ends,status,created_at',
   users: 'id,school_id,name,email,password_hash,role,status,is_first_login',
-  school_settings: 'id,school_id,academic_year,principal_name',
+  school_settings: 'id,school_id,academic_year,principal_name,hijri_offset',
   classes: 'id,school_id,name,section,academic_year',
   subjects: 'id,school_id,name,code',
   teacher_assignments: 'id,school_id,teacher_id,class_id,subject_id',

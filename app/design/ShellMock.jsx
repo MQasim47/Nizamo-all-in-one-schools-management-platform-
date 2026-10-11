@@ -12,7 +12,7 @@ import Badge, { statusTone } from '@/components/ui/Pill'
 import { Input } from '@/components/ui/FormControl'
 import { Card } from '@/components/ui/Card'
 import { notify } from '@/components/ui/Toast'
-import { ACTIVITY, GLANCE, NAV_PRINCIPAL, NAV_SUPERADMIN, PRINCIPAL, SCHOOL, STUDENTS, WAITLIST } from './sample-data'
+import { ACTIVITY, CHECKLIST_EMPTY, GLANCE, NAV_PRINCIPAL, NAV_SUPERADMIN, PRINCIPAL, SCHOOL, STUDENTS, WAITLIST } from './sample-data'
 
 const ACTIONS = [
   { label: 'Add student', icon: UserPlus },
@@ -84,7 +84,7 @@ export default function ShellMock({ mode }) {
 
   let view
   if (active === '/school/dashboard') {
-    view = <PrincipalHome name="Mrs. Nasreen" glance={empty ? [] : GLANCE} activity={empty ? [] : ACTIVITY} actions={ACTIONS} onAction={(a) => notify.info(`${a.label}: preview only`)} />
+    view = <PrincipalHome name="Mrs. Nasreen" hijriOffset={-1} glance={empty ? [] : GLANCE} activity={empty ? [] : ACTIVITY} checklist={empty ? CHECKLIST_EMPTY : undefined} actions={ACTIONS} onAction={(a) => notify.info(`${a.label}: preview only`)} />
   } else if (active === '/school/students') {
     view = empty ? (
       <div className="space-y-6">

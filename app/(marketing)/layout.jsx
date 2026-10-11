@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Logo from '@/components/ui/Logo'
 import { Noto_Naskh_Arabic } from 'next/font/google'
 import MarketingEffects from '@/components/marketing/MarketingEffects'
 import { CONTACT_EMAIL, PRIMARY_CTA_HREF, SIGNUP_OPEN, whatsappLink } from '@/lib/site'
@@ -15,10 +16,7 @@ export default function MarketingLayout({ children }) {
 
       <header data-nz-nav>
         <div className="nav-in">
-          <Link href="/" className="logo" aria-label="Nizamo home">
-            <span className="logo-mark" aria-hidden="true">N</span>
-            <span className="logo-text">Nizamo</span>
-          </Link>
+          <Logo href="/" size={30} />
           <nav className="nav-links" aria-label="Main">
             <Link href="/#modules">Modules</Link>
             <Link href="/#why">Why Nizamo</Link>
@@ -38,10 +36,7 @@ export default function MarketingLayout({ children }) {
         <div className="wrap">
           <div className="foot-in">
             <div className="foot-brand">
-              <Link href="/" className="logo" aria-label="Nizamo home">
-                <span className="logo-mark" aria-hidden="true">N</span>
-                <span className="logo-text">Nizamo</span>
-              </Link>
+              <Logo href="/" size={36} variant="reverse" />
               <p>School management built for the schools of Pakistan.</p>
             </div>
             <div className="foot-cols">

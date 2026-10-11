@@ -52,7 +52,7 @@ export default function Menu({ trigger, items, header, label = 'Menu', align = '
 
   const itemCls = (it) =>
     clsx(
-      'flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-body outline-none',
+      'flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-body outline-none transition-colors duration-150 ease-out',
       it.disabled ? 'cursor-not-allowed text-ink-3' : it.danger ? 'text-bad hover:bg-bad-soft focus:bg-bad-soft' : 'text-ink hover:bg-sunken focus:bg-sunken'
     )
 

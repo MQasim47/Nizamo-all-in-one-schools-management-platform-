@@ -36,6 +36,22 @@ Preview every component at `/design` (development only; 404 in production). Toke
 
 Plain `accent` (#C4622D) is 3.9:1 on surface: only for non-text shapes. Never use it for small text.
 
+## Logo
+`components/ui/Logo.jsx` (geometry in `lib/brand-mark.mjs`, the single source also used by the favicon, Apple icon and social card). Reference: `docs/brand/logo-reference.jpg`.
+- Full mark (48px and up): three thin bars, the diagonal "N" stroke cut by 8-unit gaps (one shared slope), and the solid pillar with two slots. Grid: bar 10, every gap 8.
+- Simplified mark (below 48px, favicon): two bars, one terracotta diagonal band, pillar with one slot, whole numbers only.
+- Wordmark: Playfair Display 600 with a terracotta dot on a dotless i. No tagline unless `tagline` is passed.
+- Variants: `layout` mark / horizontal / stacked; `variant` color / reverse (cream) / mono (espresso). Pillar slots are real cut-outs, so it works on any background.
+
+## Accent discipline
+Big numbers and progress bars are espresso. Terracotta marks only what needs action (`action` on StatCard / GlanceList rows: "5 classes not marked", overdue fees) and the primary button.
+
+## Numbers
+Always `formatRs` / `formatNumber` from `lib/utils/money.mjs` (Pakistani grouping, Rs. 18,40,000). Tables, stats and money use tabular numerals; Playfair numbers use lining figures.
+
+## Motion
+150ms ease on hover and press, a 1px press on buttons, no bounce. Respects reduced motion.
+
 ## Type scale (Tailwind classes)
 `text-caption` 12, `text-label` 13, `text-body` 14 (default), `text-lead` 16, `text-heading` 18, `text-title` 28 (serif), `text-stat` 32 (serif).
 

@@ -36,11 +36,11 @@ export const STUDENTS = [
 ]
 
 export const GLANCE = [
-  { label: 'Attendance today', value: '41 of 46', detail: '5 classes not marked yet: 6-B, 7-B, 8-A, 9-Arts, 10-Science', href: '/school/attendance', tone: 'warning' },
-  { label: 'Students present', value: '94%', detail: '1,128 of 1,200 students', progress: 94, tone: 'success', href: '/school/attendance' },
-  { label: 'Fee collected this month', value: 'Rs. 18,40,000', detail: 'of Rs. 24,00,000 expected (77%)', progress: 77, tone: 'accent', href: '/school/fees' },
-  { label: 'Result approvals waiting', value: '3', detail: 'Class 8-B Maths, Class 9 Physics, Class 7-A English', href: '/school/results', tone: 'warning' },
-  { label: 'Families with unpaid fees', value: '27', detail: 'Rs. 3,10,000 overdue by more than 30 days', href: '/school/fees', tone: 'danger' },
+  { label: 'Attendance today', value: '41 of 46', detail: '5 classes not marked yet: 6-B, 7-B, 8-A, 9-Arts, 10-Science', href: '/school/attendance', action: true },
+  { label: 'Students present', value: '94%', detail: '1,128 of 1,200 students', progress: 94, href: '/school/attendance' },
+  { label: 'Fee collected this month', value: 'Rs. 18,40,000', detail: 'of Rs. 24,00,000 expected (77%)', progress: 77, href: '/school/fees' },
+  { label: 'Result approvals waiting', value: '3', detail: 'Class 8-B Maths, Class 9 Physics, Class 7-A English', href: '/school/results', action: true },
+  { label: 'Families with unpaid fees', value: '27', detail: 'Rs. 3,10,000 overdue by more than 30 days', href: '/school/fees', action: true },
 ]
 
 export const ACTIVITY = [
@@ -49,6 +49,14 @@ export const ACTIVITY = [
   { id: 3, text: 'Mr. Rizwan collected Rs. 6,500 from Hamza Qureshi’s family', when: 'Today, 9:05 am' },
   { id: 4, text: 'Ahmed Raza added 2 new students to Class 6-A', when: 'Yesterday, 2:40 pm' },
   { id: 5, text: 'Nasreen Akhtar approved Class 9 Chemistry results', when: 'Yesterday, 11:15 am' },
+]
+
+export const CHECKLIST_EMPTY = [
+  { id: 'session', label: 'Choose the academic session', done: true },
+  { id: 'classes', label: 'Add your classes', done: false, comingSoon: true },
+  { id: 'subjects', label: 'Add subjects', done: false, comingSoon: true },
+  { id: 'staff', label: 'Add teachers and staff', done: false, comingSoon: true },
+  { id: 'students', label: 'Add or import students', done: false, comingSoon: true },
 ]
 
 export const WAITLIST = [

@@ -30,7 +30,7 @@ function Field({ id, label, hint, error, required, children, className }) {
 
 const control = (error) =>
   clsx(
-    'w-full rounded-ctl border bg-surface px-3 text-body text-ink placeholder:text-ink-3 transition-colors',
+    'w-full rounded-ctl border bg-surface px-3 text-body text-ink placeholder:text-ink-3 transition-[border-color,box-shadow,background-color] duration-150 ease-out',
     'hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent-soft',
     'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-3',
     error ? 'border-bad' : 'border-line-strong'

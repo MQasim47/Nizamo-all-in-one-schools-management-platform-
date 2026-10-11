@@ -11,6 +11,7 @@ import Menu from '@/components/ui/Menu'
 import Modal from '@/components/ui/Modal'
 import { Input } from '@/components/ui/FormControl'
 import { initials } from '@/lib/utils/format'
+import { ICONS } from './icons'
 
 // The app frame shared by the school portal and the super-admin area.
 //   brand:  { name, logoUrl? }         the SCHOOL's identity (this is their portal)
@@ -35,9 +36,9 @@ function SchoolMark({ brand, size = 32 }) {
 }
 
 function NavLink({ item, active, collapsed, onSelect }) {
-  const Icon = item.icon
+  const Icon = item.icon || ICONS[item.iconName] || ICONS.dashboard
   const cls = clsx(
-    'group relative flex items-center gap-3 rounded-ctl px-2.5 py-2 text-body font-medium transition-colors',
+    'group relative flex items-center gap-3 rounded-ctl px-2.5 py-2 text-body font-medium transition-colors duration-150 ease-out',
     collapsed && 'justify-center px-0',
     active ? 'bg-accent-soft text-ink' : 'text-ink-2 hover:bg-sunken hover:text-ink'
   )
@@ -76,7 +77,7 @@ function SidebarBody({ brand, nav, user, activeHref, collapsed, onSelect, onSign
         {!collapsed && (
           <div className="min-w-0 flex-1">
             <p className="line-clamp-2 text-body font-semibold leading-5 text-ink">{brand.name}</p>
-            <p className="text-caption text-ink-3">School portal</p>
+            <p className="text-caption text-ink-3">{brand.subtitle || 'School portal'}</p>
           </div>
         )}
         {!drawer && !collapsed && (
@@ -129,7 +130,7 @@ function SidebarBody({ brand, nav, user, activeHref, collapsed, onSelect, onSign
         </div>
         {!collapsed && (
           <p className="mt-3 flex items-center gap-1.5 text-caption text-ink-3">
-            <LogoMark size="sm" className="!h-4 !w-4 !rounded !text-[9px]" />
+            <LogoMark size={16} />
             Powered by Nizamo
           </p>
         )}
@@ -189,7 +190,7 @@ export default function AppShell({ brand, nav, user, sessionLabel, onSignOut, ac
   const body = { brand, nav, user, activeHref: active, onSelect: select, onSignOut }
 
   return (
-    <div className={clsx('relative flex bg-bg text-ink', embedded ? 'h-[780px] overflow-hidden rounded-card border border-line-strong' : 'min-h-screen')}>
+    <div style={{ '--sticky-top': embedded ? '0px' : '56px' }} className={clsx('relative flex bg-bg text-ink', embedded ? 'h-[780px] overflow-hidden rounded-card border border-line-strong' : 'min-h-screen')}>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[400] focus:rounded-ctl focus:bg-espresso focus:px-3 focus:py-2 focus:text-cream">
         Skip to content
       </a>
@@ -220,7 +221,7 @@ export default function AppShell({ brand, nav, user, sessionLabel, onSignOut, ac
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* top bar */}
-        <div className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-bg px-4 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-bg px-4 sm:px-6 lg:px-8">
           <button type="button" onClick={() => setDrawer(true)} aria-label="Open menu" className="-ml-2 flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-sunken lg:hidden">
             <MenuIcon size={20} strokeWidth={1.75} />
           </button>

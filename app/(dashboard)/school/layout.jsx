@@ -1,7 +1,8 @@
 import { requireSession } from '@/lib/auth/session'
-import { getSchoolClient } from '@/lib/supabase/school'
-import { can } from '@/lib/auth/permissions.mjs'
-import DashboardLayout from '@/components/layout/DashboardLayout'
+import { getShellSettings } from '@/lib/db/dashboard'
+import { buildNav } from '@/lib/nav.mjs'
+import { titleCase } from '@/lib/utils/format'
+import SchoolShell from '@/components/shell/SchoolShell'
 
 // Dashboard pages are private: never index them.
 export const metadata = {
@@ -11,24 +12,25 @@ export const metadata = {
 export default async function SchoolLayout({ children }) {
   // Redirects to /login (signed out) or /signed-out (user deactivated / school suspended).
   const session = await requireSession()
+  const { name, email, role, schoolName } = session.user
+  const isSuper = role === 'superadmin'
 
-  let pendingApprovalsCount = 0
-
-  if (can(session.user.role, 'results.approve')) {
-    const ctx = await getSchoolClient(session)
-    const { data } = await ctx.db
-      .from('results')
-      .select('class_id, subject_id, exam_type')
-      .eq('status', 'pending')
-
-    // Count distinct class+subject+exam combinations (matches PHP logic)
-    const unique = new Set((data || []).map((r) => `${r.class_id}-${r.subject_id}-${r.exam_type}`))
-    pendingApprovalsCount = unique.size
+  // The shell never blocks a page: if settings cannot be read it falls back to plain defaults.
+  let settings = { academicYear: null, logoUrl: null }
+  if (!isSuper) {
+    try {
+      settings = await getShellSettings(session)
+    } catch {}
   }
 
   return (
-    <DashboardLayout pendingApprovalsCount={pendingApprovalsCount}>
+    <SchoolShell
+      brand={isSuper ? { name: 'Nizamo Admin', subtitle: 'Platform' } : { name: schoolName, logoUrl: settings.logoUrl }}
+      nav={buildNav(role)}
+      user={{ name, email, roleLabel: isSuper ? 'Platform admin' : titleCase(role) }}
+      sessionLabel={settings.academicYear ? `Session ${settings.academicYear.replace('-', '–')}` : undefined}
+    >
       {children}
-    </DashboardLayout>
+    </SchoolShell>
   )
 }

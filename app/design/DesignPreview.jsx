@@ -12,6 +12,8 @@ import Modal from '@/components/ui/Modal'
 import Menu from '@/components/ui/Menu'
 import DataTable from '@/components/ui/DataTable'
 import EmptyState from '@/components/ui/EmptyState'
+import ErrorState from '@/components/ui/ErrorState'
+import SetupChecklist from '@/components/dashboard/SetupChecklist'
 import PageHeader from '@/components/ui/PageHeader'
 import { StatCard, GlanceList } from '@/components/ui/StatCard'
 import { Skeleton, SkeletonRows, SkeletonText } from '@/components/ui/Skeleton'
@@ -19,7 +21,7 @@ import { Tabs, TabPanel } from '@/components/ui/Tabs'
 import { notify } from '@/components/ui/Toast'
 import LoginView from '@/components/auth/LoginView'
 import ShellMock from './ShellMock'
-import { GLANCE, STUDENTS } from './sample-data'
+import { CHECKLIST_EMPTY, GLANCE, STUDENTS } from './sample-data'
 
 const SWATCHES = [
   ['Page', 'bg-bg', '#F5F0E8', 'text-ink'],
@@ -69,7 +71,7 @@ const SECTIONS = [
   ['cards', 'Cards'], ['tables', 'Tables'], ['overlays', 'Modal, menu, toast'], ['loading', 'Loading'], ['login', 'Login'], ['shell', 'Dashboard shell'],
 ]
 
-export default function DesignPreview() {
+export default function DesignPreview({ refImage }) {
   const [modal, setModal] = useState(false)
   const [tab, setTab] = useState('all')
   const [loading, setLoading] = useState(false)
@@ -87,7 +89,7 @@ export default function DesignPreview() {
     <div className="min-h-screen bg-bg text-ink">
       <div className="mx-auto max-w-[1180px] px-4 pb-24 pt-8 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Logo size="lg" />
+          <Logo size={40} />
           <Badge tone="warning" dot>Development preview. Returns 404 in production.</Badge>
         </div>
         <PageHeader className="mt-8" title="Nizamo design system" description="Every building block of the app, then the dashboard shell and login screen built from them. Warm neutrals, one terracotta accent, Playfair only for page titles and big numbers, Inter for everything else." />
@@ -123,10 +125,62 @@ export default function DesignPreview() {
           </Card>
         </Section>
 
-        <Section id="logo" title="Logo" note="A placeholder monogram. The real SVG logo replaces components/ui/Logo.jsx only; no page needs to change. The graduation-cap icon is gone.">
-          <div className="flex flex-wrap items-center gap-8">
-            <Logo size="lg" /><Logo size="md" /><Logo size="sm" /><LogoMark size="md" />
-            <span className="rounded-card bg-espresso p-4"><Logo tone="light" /></span>
+        <Section id="logo" title="Logo" note="Hand-built SVG from your reference. Geometry is in lib/brand-mark.mjs (one source for the app, favicon and social image). Colours are exactly #2C1810, #C4622D, #F5F0E8.">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <p className="mb-3 text-label font-medium text-ink-3">Your reference</p>
+              {refImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={refImage} alt="Logo reference supplied by the founder" className="w-full rounded-ctl border border-line" />
+              ) : (
+                <p className="text-body text-ink-3">docs/brand/logo-reference.jpg not found.</p>
+              )}
+            </Card>
+            <Card>
+              <p className="mb-3 text-label font-medium text-ink-3">Rebuilt (full mark, stacked lockup, no tagline)</p>
+              <div className="flex min-h-[260px] items-center justify-center rounded-ctl bg-bg py-8"><Logo layout="stacked" size={150} /></div>
+            </Card>
+          </div>
+
+          <p className="mb-3 mt-8 text-label font-medium text-ink-3">Sizes. Full mark (left) and simplified mark (right) at 16, 32, 48 and large. The app picks the simplified drawing automatically below 48px.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[['Full', false], ['Simplified', true]].map(([name, simp]) => (
+              <Card key={name}>
+                <p className="mb-4 text-label font-semibold text-ink">{name}</p>
+                <div className="flex flex-wrap items-end gap-8">
+                  {[16, 32, 48, 128].map((h) => (
+                    <div key={h} className="flex flex-col items-center gap-2"><LogoMark size={h} simplified={simp} /><span className="text-caption text-ink-3">{h}px</span></div>
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <p className="mb-3 mt-8 text-label font-medium text-ink-3">Variants</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">Mark only</span><Logo layout="mark" size={48} /></Card>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">Horizontal lockup</span><Logo size={48} /></Card>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">Horizontal, 32px (simplified mark)</span><Logo size={32} /></Card>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">Stacked lockup</span><Logo layout="stacked" size={72} /></Card>
+            <div className="flex flex-col items-start gap-3 rounded-card bg-espresso p-5"><span className="text-caption text-cream">Reverse (cream on espresso)</span><Logo size={48} variant="reverse" /></div>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">One colour (espresso)</span><Logo size={48} variant="mono" /></Card>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">With optional tagline</span><Logo size={56} tagline="School Management" /></Card>
+            <div className="flex flex-col items-start gap-3 rounded-card bg-espresso p-5"><span className="text-caption text-cream">Reverse, small (16 / 24 / 32)</span><div className="flex items-end gap-5"><LogoMark size={16} variant="reverse" /><LogoMark size={24} variant="reverse" /><LogoMark size={32} variant="reverse" /></div></div>
+            <Card className="flex flex-col items-start gap-3"><span className="text-caption text-ink-3">One colour, small</span><div className="flex items-end gap-5"><LogoMark size={16} variant="mono" /><LogoMark size={24} variant="mono" /><LogoMark size={32} variant="mono" /></div></Card>
+          </div>
+
+          <p className="mb-3 mt-8 text-label font-medium text-ink-3">Generated from the simplified mark: favicon (/icon), Apple icon (/apple-icon), social card (/opengraph-image)</p>
+          <div className="flex flex-wrap items-end gap-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon" alt="Favicon" width={64} height={64} className="rounded-xl border border-line" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon" alt="Favicon at 16px" width={16} height={16} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon" alt="Favicon at 32px" width={32} height={32} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/apple-icon" alt="Apple icon" width={90} height={90} className="rounded-2xl border border-line" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/opengraph-image" alt="Social card" width={360} className="rounded-ctl border border-line" />
           </div>
         </Section>
 
@@ -176,8 +230,8 @@ export default function DesignPreview() {
         <Section id="cards" title="Cards, stat cards and the glance list" note="The dashboard uses one briefing list instead of a row of identical KPI boxes. Stat cards remain available for single figures.">
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard label="Students enrolled" value="1,200" detail="46 joined this term" href="#cards" />
-            <StatCard label="Fee collected" value="77%" progress={77} tone="accent" detail="Rs. 18,40,000 of Rs. 24,00,000" />
-            <StatCard label="Attendance today" value="94%" progress={94} tone="success" detail="1,128 present" />
+            <StatCard label="Fee collected" value="77%" progress={77} detail="Rs. 18,40,000 of Rs. 24,00,000" />
+            <StatCard label="Overdue fees" value="Rs. 3,10,000" action detail="27 families, more than 30 days late" />
           </div>
           <Card padding={false} className="mt-6">
             <div className="border-b border-line px-5 py-4"><CardHeader title="Today at a glance" description="Each row opens the place where you act on it." action={<Button size="sm" variant="ghost">View all</Button>} /></div>
@@ -229,11 +283,16 @@ export default function DesignPreview() {
           </Modal>
         </Section>
 
-        <Section id="loading" title="Loading states">
+        <Section id="loading" title="Loading, error and setup states" note="Every data block has a skeleton while it loads and a calm message with a retry when it fails. A new school sees the setup checklist.">
           <div className="grid gap-4 md:grid-cols-2">
             <Card><Skeleton className="h-4 w-32" /><Skeleton className="mt-3 h-8 w-24" /><SkeletonText className="mt-4" lines={2} /></Card>
             <Card padding={false}><SkeletonRows rows={4} /></Card>
           </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <DataTable loading columns={[{ key: 'a', header: 'A' }]} rows={[]} />
+            <Card padding={false}><ErrorState onRetry={() => notify.info('Retrying (preview only)')} /></Card>
+          </div>
+          <div className="mt-4 max-w-2xl"><SetupChecklist steps={CHECKLIST_EMPTY} /></div>
         </Section>
 
         <Section id="login" title="Login screen" note="Per-school sign-in. Use the buttons to see each state. On a phone the identity moves above the form.">
