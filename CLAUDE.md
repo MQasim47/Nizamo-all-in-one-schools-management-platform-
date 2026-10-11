@@ -4,15 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Edu4Everyone (package name `edu4everyone`): multi-tenant school management SaaS for Pakistani schools, migrated from a PHP MVP. Next.js 14 (App Router, JavaScript/JSX, no TypeScript) + Supabase (Postgres) + NextAuth (credentials/JWT) + Tailwind. Many logic ports are meant to "match the PHP MVP exactly" (e.g. grade thresholds in `lib/utils/grades.js`), so preserve behavior when changing them.
+Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<subdomain>.getnizamo.com`, always via `NEXT_PUBLIC_ROOT_DOMAIN`): multi-tenant school management SaaS for Pakistani schools, migrated from a PHP MVP. Next.js 14 (App Router, JavaScript/JSX, no TypeScript) + Supabase (Postgres) + NextAuth (credentials/JWT) + Tailwind. Many logic ports are meant to "match the PHP MVP exactly" (e.g. grade thresholds in `lib/utils/grades.js`), so preserve behavior when changing them.
 
 ## Commands
 
 - `npm run dev` — dev server at http://localhost:3000
 - `npm run build` / `npm start` — production build / serve
 - `npm run lint` — `next lint`
-- No test suite is configured.
-
+- `npm run test:unit` — unit tests (`tests/`: phone normaliser, CSV safety).
+- `npm run test:waitlist` — waitlist/admin/register API checks against a running server (`TEST_BASE=http://localhost:3100`, start it with `npm run dev -- -p 3100`).
+- `npm run brand:images` — regenerates the static OG/Twitter/icon PNGs in `app/` (`next/og` is broken on Windows in Next 14.2, so images are pre-rendered).
 - `npm run test:tenant` — proves tenant isolation through per-user tokens against the dev project (seeds and removes two throwaway schools). Run after any schema/policy change.
 - `npm run demo:passwords` — gives the demo accounts unique strong passwords (writes `.env.local`).
 - `npm run check:db` — backend health check ([scripts/check-db.mjs](scripts/check-db.mjs)): Supabase reachable, schema matches the columns the code uses, demo school `ghs` exists, NextAuth login path works. Run it first when anything backend-related breaks (free Supabase projects pause when idle).
@@ -23,7 +24,7 @@ Local login: `http://localhost:3000/login?school=ghs` (seed users e.g. `principa
 
 ## Architecture
 
-**Multi-tenancy by subdomain.** [middleware.js](middleware.js) derives the school subdomain from the host (needs `NEXT_PUBLIC_ROOT_DOMAIN`, e.g. `ghs.nizamo.com` → `ghs`; on exact `localhost` it uses `?school=`) and forwards it as the `x-school-subdomain` header, which the login page reads. It guards `/school/*` with a NextAuth JWT and redirects to `/signed-out` if the token's school differs from the host's.
+**Multi-tenancy by subdomain.** [middleware.js](middleware.js) derives the school subdomain from the host (needs `NEXT_PUBLIC_ROOT_DOMAIN`, e.g. `ghs.getnizamo.com` → `ghs`; on exact `localhost` it uses `?school=`) and forwards it as the `x-school-subdomain` header, which the login page reads. It guards `/school/*` (and `/admin/*`, superadmin only) with a NextAuth JWT and redirects to `/signed-out` if the token's school differs from the host's. Unknown school subdomains get a 404 (`/school-not-found`, via the guarded `/api/internal/school-exists`), `www` redirects to the apex, a school's own `/` goes to its login, and every school address is `X-Robots-Tag: noindex`.
 
 **Auth.** [lib/auth/options.js](lib/auth/options.js): Credentials provider (email + password + subdomain, bcrypt, zod-validated), 24h JWT, lockout after 5 consecutive failures for 15 min (`login_attempts`, identifier is a hash, never the email). The token is only a ticket: [lib/auth/session.js](lib/auth/session.js) `requireSession({permission})` (pages/layouts) and `requireApiSession(permission)` (route handlers) re-check on every request (cached 60s) that the user is active and the school not suspended, and return the CURRENT role from the DB. Never call `getServerSession` directly.
 
@@ -43,7 +44,7 @@ UI primitives (Button, Card, Pill, Alert, FormControl, Modal) are in `components
 
 ## Product goal
 
-Nizamo: an all-in-one school ERP, Pakistan-first, international later. (Code, package name and some UI still say "Edu4Everyone"; Nizamo is the product name.) Differentiators to protect:
+Nizamo: an all-in-one school ERP, Pakistan-first, international later. Differentiators to protect:
 - General Register with B-Form, and one-click SLC
 - Class gazette result sheet
 - Fee challans with family accounts
@@ -55,9 +56,9 @@ Nizamo: an all-in-one school ERP, Pakistan-first, international later. (Code, pa
 ## Design rules
 
 - Palette: cream `#F5F0E8`, espresso `#2C1810`, terracotta `#C4622D` as the only accent. (`tailwind.config.js` also carries sand, gold, greens/reds from the PHP MVP; don't add more accents.)
-- Fonts: Playfair Display for headings, Inter for UI. Note: Inter is not currently loaded anywhere and the dashboard still uses DM Sans; use `next/font` when fixing.
+- Fonts: Playfair Display for headings, Inter for UI. Both load via `next/font` in `app/layout.jsx` (CSS vars `--font-inter`, `--font-playfair`; Urdu uses Noto Naskh via the marketing layout).
 - Calm, premium, Apple-keynote feel. No generic gradient cards, no AI-template look.
-- Homepage CSS lives in `app/home.css`, namespaced under `.nz-home`, and must never leak into the dashboard.
+- Marketing CSS lives in `app/(marketing)/marketing.css`, namespaced under `.nz-home`, and must never leak into the dashboard. Marketing pages live in the `app/(marketing)` route group; copy is in `lib/marketing-content.js`, the Founding Schools offer in `lib/offer.js` (no prices until the owner adds them), site constants and legal TODOs in `lib/site.js`.
 - Reuse `components/ui/*` and `components/layout/*` before creating new components.
 
 ## Security rules (non-negotiable)
@@ -65,7 +66,7 @@ Nizamo: an all-in-one school ERP, Pakistan-first, international later. (Code, pa
 - School-scoped queries go through `getSchoolClient(session)` only; `school_id` comes from the session, never from the request body, URL or query string. RLS is the tenant wall, and app code still sets/filters `school_id` explicitly (defense in depth).
 - The service-role key is server-only and used only in `lib/db/admin/*` and `scripts/`. Never import it into a client component or put it in a `NEXT_PUBLIC_` variable. `SUPABASE_JWT_SECRET` is equally server-only.
 - Every new table gets `school_id`, RLS enabled, policies built on `app.school_id()` + `app.can()`, explicit GRANTs, and composite `(school_id, id)` foreign keys to other tenant tables.
-- Every edit to marks, fees or the General Register must be auditable (audit log planned, not built yet).
+- Every edit to marks, fees or the General Register is auditable: DB triggers write `audit_log` (add the trigger to any new auditable table).
 - Never pass a request payload straight into `.update()` / `.insert()`; whitelist columns.
 
 ## Roles
@@ -74,7 +75,7 @@ Currently `superadmin`, `principal`, `teacher` (also a CHECK constraint on `user
 
 ## SEO rules
 
-- Marketing pages are server-rendered and use `generateMetadata`.
+- Marketing pages are server-rendered and use `generateMetadata` via `lib/seo.js` `pageMetadata()` (Next does not deep-merge openGraph/twitter, so always build the full set). Canonicals are on the root domain; `app/sitemap.js` and `app/robots.js` list marketing pages only.
 - All logged-in dashboard routes (`/school/*`) are `noindex`.
 - Don't treat Lighthouse scores as proof of SEO quality.
 

@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { detectSchoolBySubdomain } from '@/lib/db/admin/schools'
 import { subdomainSchema } from '@/lib/validation/auth'
+import { ROOT_DOMAIN } from '@/lib/site'
 import LoginForm from './LoginForm'
 
 export const metadata = {
@@ -40,9 +41,10 @@ export default async function LoginPage({ searchParams }) {
   return (
     <LoginForm
       subdomain={subdomain}
-      schoolName={school?.school_name || 'Edu4Everyone'}
+      schoolName={school?.school_name || 'Nizamo'}
       schoolFound={!!school}
       demo={school ? demoAccounts(subdomain) : []}
+      rootDomain={ROOT_DOMAIN}
     />
   )
 }

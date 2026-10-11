@@ -43,7 +43,7 @@ const nextConfig = {
     return [
       { source: '/:path*', headers: securityHeaders },
       // Private routes: never indexed, never cached by shared caches.
-      ...['/school/:path*', '/login', '/signed-out', '/api/:path*'].map((source) => ({
+      ...['/school/:path*', '/admin/:path*', '/login', '/signed-out', '/school-not-found', '/api/:path*'].map((source) => ({
         source,
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       })),

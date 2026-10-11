@@ -26,8 +26,8 @@ module.exports = {
         'text-light': '#8B7566',
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
       borderRadius: {
         DEFAULT: '9px',

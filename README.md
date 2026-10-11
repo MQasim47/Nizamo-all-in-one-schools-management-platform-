@@ -1,4 +1,4 @@
-# Edu4Everyone — Next.js + Supabase
+# Nizamo — Next.js + Supabase
 
 School Management SaaS for Pakistani schools. Migrated from PHP MVP.
 
@@ -6,7 +6,7 @@ School Management SaaS for Pakistani schools. Migrated from PHP MVP.
 
 ### 1. Supabase setup
 1. Go to https://supabase.com → New Project
-   - Name: edu4everyone
+   - Name: nizamo
    - Region: Singapore (closest to Pakistan)
    - Save your database password somewhere safe
 2. Wait ~2 min for project to provision

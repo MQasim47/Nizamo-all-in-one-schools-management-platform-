@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 
 // subdomain/schoolName/schoolFound are resolved on the server (login/page.jsx).
 // `demo` is an empty list unless NEXT_PUBLIC_DEMO_MODE=true on the server.
-export default function LoginForm({ subdomain, schoolName, schoolFound, demo }) {
+export default function LoginForm({ subdomain, schoolName, schoolFound, demo, rootDomain }) {
   const router = useRouter()
 
   const [email, setEmail] = useState('')
@@ -61,7 +61,7 @@ export default function LoginForm({ subdomain, schoolName, schoolFound, demo }) 
           <div className="w-[50px] h-[50px] bg-terracotta rounded-2xl flex items-center justify-center text-2xl mb-3.5">
             🎓
           </div>
-          <div className="font-serif text-xl text-warm-white">Edu4Everyone</div>
+          <div className="font-serif text-xl text-warm-white">Nizamo</div>
           <div className="text-[11px] text-brown-light tracking-[2px] uppercase mt-1">
             School Management SaaS
           </div>
@@ -103,7 +103,7 @@ export default function LoginForm({ subdomain, schoolName, schoolFound, demo }) 
       <div className="flex-1 flex items-center justify-center p-12 bg-warm-white relative">
         {subdomain && (
           <div className="absolute top-6 right-6 bg-sand border border-[rgba(92,61,46,0.15)] rounded-lg px-3 py-1.5 text-xs text-text-mid font-medium">
-            🏫 {subdomain}.edu4everyone.com
+            🏫 {rootDomain ? `${subdomain}.${rootDomain}` : subdomain}
           </div>
         )}
 
@@ -117,7 +117,8 @@ export default function LoginForm({ subdomain, schoolName, schoolFound, demo }) 
 
           {!schoolFound ? (
             <div className="bg-[rgba(192,57,43,0.1)] border border-[rgba(192,57,43,0.25)] rounded-[10px] p-3 text-[13px] text-school-red">
-              ⚠ School portal not found. Add <b>?school=ghs</b> to the URL, or check your link.
+              We could not find that school. Please open the sign-in link your school gave you
+              {rootDomain ? <> (it looks like <b>yourschool.{rootDomain}</b>)</> : null}, or ask your school for it.
             </div>
           ) : (
             <>

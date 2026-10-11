@@ -1,5 +1,5 @@
 {
-  "name": "edu4everyone",
+  "name": "nizamo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,10 @@
     "lint": "next lint",
     "check:db": "node scripts/check-db.mjs",
     "demo:passwords": "node scripts/set-demo-passwords.mjs",
-    "test:tenant": "node scripts/test-tenant.mjs"
+    "test:tenant": "node scripts/test-tenant.mjs",
+    "test:unit": "node --test tests/*.test.mjs",
+    "test:waitlist": "node scripts/test-waitlist.mjs",
+    "brand:images": "node scripts/generate-brand-images.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^3.4.4",
@@ -29,10 +32,13 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@fontsource/playfair-display": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "^14.2.35",
     "postcss": "^8",
+    "satori": "^0.47.1",
     "tailwindcss": "^3.4.1"
   }
 }

@@ -37,6 +37,7 @@ const SUPERADMIN_NAV = [
   { section: 'Super Admin', items: [
     { href: '/school/dashboard', icon: '⊞', label: 'Dashboard' },
     { href: '/school/schools', icon: '🏫', label: 'All Schools' },
+    { href: '/admin/waitlist', icon: '📋', label: 'Waitlist' },
     { href: '/register', icon: '➕', label: 'Register School' },
   ] },
 ]
@@ -100,7 +101,7 @@ export default function Sidebar({ pendingApprovalsCount = 0 }) {
           <div className="w-[34px] h-[34px] bg-terracotta rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">
             🎓
           </div>
-          <div className="font-serif text-[15px] text-warm-white">Edu4Everyone</div>
+          <div className="font-serif text-[15px] text-warm-white">Nizamo</div>
         </div>
       </div>
 

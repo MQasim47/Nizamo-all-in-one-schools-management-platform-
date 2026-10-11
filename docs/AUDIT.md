@@ -16,6 +16,10 @@ Read-only audit of the repo at commit `57437a3` (branch `main`). No application 
 - `users.role` CHECK allows only `superadmin`, `principal`, `teacher` (`supabase/schema.sql:35`).
 - RLS is enabled on all 13 tables but no policies exist (`schema.sql:260-272`). That means deny-all for the anon key (safe) and full bypass for the service role (what the app uses). Because auth is NextAuth, not Supabase Auth, `auth.uid()` is unavailable, so per-school policies need a Supabase-compatible JWT carrying `school_id` (the `jose` dependency is already installed) or the app must stay service-role-only and rely on app-level filtering.
 
+## Session 3 status
+
+H8 and H2 are fixed, along with M11 (marketing site and fonts), M12 and L1-L3. The homepage is now a server component with per-page metadata, content is visible without JavaScript, Inter/Playfair load through `next/font`, and unknown school addresses show a 404. Still open: M3, M7, M8, M9, the dashboard side of M11, and the other lows.
+
 ## Session 2 status
 
 All CRITICAL and HIGH items are fixed except H8 (homepage/register/waitlist, deferred to Part 3) and the parts noted in brackets. Proof: `npm run test:tenant` (57 checks, including every table cross-school) plus a live login/lockout smoke test. Mediums still open: M3, M7, M8, M9, M11, M12 and the lows not marked. `check:db` now passes against the restored project (the Session 1 "DB unreachable" note is resolved).
@@ -51,7 +55,7 @@ Fix: re-check user and school status in the `jwt` callback at most every few min
 **H1. [FIXED] Subdomain is never bound to the session (user from school A on school B's host).**
 `middleware.js:16-23` computes the subdomain, but `:31-45` only checks that *a* token exists. It never compares `token.schoolSubdomain` to the host. Data stays safe (queries use the session's `schoolId`), but a school A user can sit on `b.nizamo.com/school/dashboard` and see B's branding context; this is a phishing and confusion vector. Fix: in middleware, if `subdomain && token.schoolSubdomain !== subdomain` redirect to the user's own subdomain or sign out.
 
-**H2. [PARTLY FIXED (host parsing is exact and never guesses; unknown school shows not-found on login; the marketing homepage on an unknown subdomain is Part 3)] Unknown subdomains are not handled.**
+**H2. [FIXED in Session 3: unknown school addresses return a 404 page, www redirects to the apex, a school's own / goes to its login] Unknown subdomains are not handled.**
 `middleware.js:21-23`: any `foo.<domain>` is accepted as a "subdomain" and falls through to the marketing homepage; no 404, no redirect to the apex. Also `parts.length >= 3` treats `myapp.vercel.app` preview URLs as school `myapp`, and `hostname.includes('localhost')` (`:19`) matches hosts like `localhost.evil.com`. Fix: compare against a configured root domain (`NEXT_PUBLIC_ROOT_DOMAIN`), look the school up, 404 if unknown; use exact `localhost`/`127.0.0.1` matching.
 
 **H3. [FIXED] The subdomain header is dead code; the login page ignores the host.**
@@ -69,7 +73,7 @@ Fix: re-check user and school status in the `jwt` callback at most every few min
 **H7. [FIXED] Destructive and unaudited writes on legal records.**
 `lib/db/students.js:170-178` hard-deletes a student; FKs cascade to attendance, results and fee payments (`schema.sql:159,176,244`). `updateStudent`, `markStudentLeaving` and the results flow have no audit trail. Fix: soft delete (`status = 'deleted'`/`deleted_at`) and the planned audit log before the Students module ships.
 
-**H8. [DEFERRED to Part 3 (homepage, register page, waitlist)] Homepage links to a page that does not exist; metadata is wrong and unmanaged.**
+**H8. [FIXED in Session 3] Homepage links to a page that does not exist; metadata is wrong and unmanaged.**
 `app/page.jsx:79,90,288,304` link to `/register`, and `middleware.js:5` lists it as public, but no `app/register` exists in the repo (and no waitlist form or table). `app/page.jsx:1` makes the entire marketing page a client component, so `generateMetadata` is impossible on it (SEO rule), and `app/layout.jsx:6-9` still says "Edu4Everyone – School Management SaaS". Fix: split the page into a server component with `generateMetadata` + a small client island for the observers; set Nizamo metadata, canonical, Open Graph, `sitemap.js`, `robots.js`.
 
 **H9. [FIXED] Dashboard is not `noindex`.**
@@ -102,22 +106,22 @@ No `robots` metadata anywhere. `app/(dashboard)/school/layout.jsx` should export
 
 **M10. [FIXED] Public school lookup endpoint leaks and is unthrottled.** `app/api/schools/check/route.js:4-25` returns `school_name` and `plan` to anyone for any subdomain (enumeration). `login/page.jsx:29` also does not `encodeURIComponent` the value. Fix: return only `{found, school_name}`, rate limit, encode.
 
-**M11. Brand and palette drift from the design rules.**
+**M11. [FIXED for the marketing site and fonts in Session 3; dashboard palette cleanup remains] Brand and palette drift from the design rules.**
 - Two palettes: homepage `#faf8f5/#141210` (`app/home.css:2-5`) vs dashboard cream/espresso (`tailwind.config.js:12-26`); marksheet mock uses off-palette blue `#1a3a6b` (`home.css:101-103`).
 - Inter is never loaded: `app/globals.css:1` imports Playfair + DM Sans, but `home.css:6` asks for Inter, so the homepage silently falls back to the system sans. Dashboard body is DM Sans (`globals.css:39`, `tailwind.config.js:29`, `app/layout.jsx:24`).
 - Gradient orbs (`home.css:46-48`, `login/page.jsx:77-84`) and emoji icons (🎓 in `login:88`, `Sidebar.jsx:54`) conflict with "no generic gradient/AI-template look".
 - Product name is "Edu4Everyone" in `app/layout.jsx:6`, `login/page.jsx:90,132`, `Sidebar.jsx:56`, `package.json:2`, `schema.sql:2`.
 Fix: one token set, load Playfair + Inter via `next/font`, decide on the logo mark, rename.
 
-**M12. Homepage marketing claims are ahead of the product.** `app/page.jsx:207-211` ("9+ connected modules", "3 dedicated portals"), the tiles at `:145-200` (marksheets, fees, attendance, "full audit trail") describe features not built (only auth and a placeholder dashboard exist). Fix: label as roadmap or trim before launch.
+**M12. [FIXED in Session 3: modules are labelled "In development"] Homepage marketing claims are ahead of the product.** `app/page.jsx:207-211` ("9+ connected modules", "3 dedicated portals"), the tiles at `:145-200` (marksheets, fees, attendance, "full audit trail") describe features not built (only auth and a placeholder dashboard exist). Fix: label as roadmap or trim before launch.
 
 ---
 
 ## LOW
 
-**L1.** Homepage content is `opacity:0` until JavaScript adds `.in` (`home.css:31`; `app/page.jsx:13-24`): flash of invisible content, blank for no-JS and slow hydration; no `prefers-reduced-motion` handling.
-**L2.** Counter animation sets `textContent` on React-owned nodes and never clears its `setInterval`s on unmount (`app/page.jsx:32-48`). Harmless today; breaks on re-render or navigation.
-**L3.** Dead anchors: footer About/Contact/Careers `href="#"` (`app/page.jsx:303`), "Forgot password?" (`login/page.jsx:196`); "Pricing" nav points at the CTA (`page.jsx:75,283`) and there is no pricing section.
+**L1. [FIXED in Session 3]** Homepage content is `opacity:0` until JavaScript adds `.in` (`home.css:31`; `app/page.jsx:13-24`): flash of invisible content, blank for no-JS and slow hydration; no `prefers-reduced-motion` handling.
+**L2. [FIXED in Session 3]** Counter animation sets `textContent` on React-owned nodes and never clears its `setInterval`s on unmount (`app/page.jsx:32-48`). Harmless today; breaks on re-render or navigation.
+**L3. [FIXED in Session 3]** Dead anchors: footer About/Contact/Careers `href="#"` (`app/page.jsx:303`), "Forgot password?" (`login/page.jsx:196`); "Pricing" nav points at the CTA (`page.jsx:75,283`) and there is no pricing section.
 **L4.** Sidebar returns `null` while the session loads (`Sidebar.jsx:43`) but the layout still reserves 220px (`DashboardLayout.jsx:9`): layout shift. Pass the session from the server layout instead.
 **L5.** Superadmin gets a school-scoped layout: pending count queries the `admin` school (`school/layout.jsx:16-21`), and sidebar links `/school/schools` (`Sidebar.jsx:76`) and `/register` (`:77`) have no pages.
 **L6.** No `error.jsx`, `loading.jsx` or `not-found.jsx` anywhere under `app/`. Failed DB calls (`throw error` in every helper) will surface as the default Next error page.

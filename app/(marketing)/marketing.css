@@ -1,0 +1,198 @@
+/* Marketing site. EVERYTHING is under .nz-home so nothing can leak into the dashboard.
+   Palette: cream #F5F0E8, espresso #2C1810, terracotta #C4622D (the only accent). Mobile first. */
+
+.nz-home {
+  --cream: #F5F0E8;
+  --espresso: #2C1810;
+  --terra: #C4622D;
+  --card: #FBF8F3;
+  --ink-soft: rgba(44, 24, 16, 0.74);
+  --ink-mute: rgba(44, 24, 16, 0.56);
+  --line: rgba(44, 24, 16, 0.12);
+  --line-strong: rgba(44, 24, 16, 0.22);
+  --terra-soft: rgba(196, 98, 45, 0.11);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--espresso);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+.nz-home *, .nz-home *::before, .nz-home *::after { box-sizing: border-box; }
+.nz-home h1, .nz-home h2, .nz-home h3, .nz-home p, .nz-home ul { margin: 0; padding: 0; }
+.nz-home ul { list-style: none; }
+.nz-home a { color: inherit; }
+.nz-home .serif { font-family: var(--font-playfair), Georgia, serif; }
+.nz-home .ur { font-family: var(--font-urdu), 'Noto Naskh Arabic', 'Segoe UI', serif; line-height: 2; }
+.nz-home .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.nz-home .skip { position: absolute; left: -9999px; }
+.nz-home .skip:focus { left: 12px; top: 12px; z-index: 200; background: var(--espresso); color: var(--cream); padding: 8px 14px; border-radius: 8px; }
+.nz-home :focus-visible { outline: 2px solid var(--terra); outline-offset: 3px; border-radius: 6px; }
+
+/* ---------- buttons ---------- */
+.nz-home .btn { font: inherit; font-size: 15px; font-weight: 500; padding: 12px 22px; border-radius: 999px; border: 1px solid transparent; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .2s, background .2s, box-shadow .2s; }
+.nz-home .btn-clay { background: var(--terra); color: #fff; }
+.nz-home .btn-clay:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(196, 98, 45, .3); }
+.nz-home .btn-dark { background: var(--espresso); color: var(--cream); }
+.nz-home .btn-ghost { background: transparent; color: var(--espresso); border-color: var(--line-strong); }
+.nz-home .btn-ghost:hover { background: rgba(44, 24, 16, .05); }
+.nz-home .btn-lg { padding: 14px 26px; font-size: 16px; }
+.nz-home .btn[disabled] { opacity: .65; cursor: progress; transform: none; box-shadow: none; }
+
+/* ---------- nav ---------- */
+.nz-home [data-nz-nav] { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: background .3s, border-color .3s; border-bottom: 1px solid transparent; }
+.nz-home [data-nz-nav].scrolled { background: rgba(245, 240, 232, .92); backdrop-filter: blur(14px); border-bottom-color: var(--line); }
+.nz-home .nav-in { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.nz-home .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.nz-home .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--espresso); color: var(--cream); display: grid; place-items: center; font-family: var(--font-playfair), serif; font-size: 17px; font-weight: 600; }
+.nz-home .logo-text { font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
+.nz-home .nav-links { display: none; gap: 30px; }
+.nz-home .nav-links a { font-size: 14px; color: var(--ink-soft); text-decoration: none; }
+.nz-home .nav-links a:hover { color: var(--terra); }
+.nz-home .nav-cta { display: flex; gap: 6px; align-items: center; }
+.nz-home .nav-cta .btn { padding: 9px 16px; font-size: 14px; }
+.nz-home .nav-signin { display: none; }
+
+/* ---------- hero ---------- */
+.nz-home .hero { padding: 112px 0 56px; text-align: center; }
+.nz-home .eyebrow { display: inline-block; font-size: 13px; font-weight: 500; color: var(--terra); background: var(--terra-soft); padding: 6px 14px; border-radius: 999px; margin-bottom: 26px; }
+.nz-home .hero h1 { font-family: var(--font-playfair), Georgia, serif; font-weight: 500; font-size: clamp(36px, 9vw, 76px); line-height: 1.04; letter-spacing: -.03em; max-width: 16ch; margin: 0 auto 22px; }
+.nz-home .hero h1 em { font-style: italic; color: var(--terra); font-weight: 400; }
+.nz-home .hero .sub { font-size: clamp(16px, 2.4vw, 20px); color: var(--ink-soft); max-width: 54ch; margin: 0 auto 32px; }
+.nz-home .hero-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; max-width: 360px; margin: 0 auto 20px; }
+.nz-home .hero-note { font-size: 13px; color: var(--ink-mute); }
+
+/* product preview (illustration, not a screenshot) */
+.nz-home .preview { margin: 44px auto 0; max-width: 760px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 30px 80px -34px rgba(44, 24, 16, .35); text-align: left; overflow: hidden; }
+.nz-home .preview-bar { padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--ink-mute); display: flex; justify-content: space-between; gap: 10px; }
+.nz-home .preview-body { padding: 18px; display: grid; gap: 14px; }
+.nz-home .pv-title { font-family: var(--font-playfair), serif; font-size: 19px; }
+.nz-home .pv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nz-home .pv-table th { text-align: left; font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.nz-home .pv-table td { padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.nz-home .pv-scroll { overflow-x: auto; }
+.nz-home .pv-note { font-size: 12px; color: var(--ink-mute); }
+.nz-home .pv-chip { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--terra-soft); color: var(--terra); font-weight: 600; }
+
+/* ---------- sections ---------- */
+.nz-home .section { padding: 72px 0; }
+.nz-home .sec-head { max-width: 62ch; margin: 0 auto 44px; text-align: center; }
+.nz-home .sec-tag { font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--terra); margin-bottom: 14px; }
+.nz-home .sec-title { font-family: var(--font-playfair), Georgia, serif; font-weight: 500; font-size: clamp(28px, 6vw, 46px); line-height: 1.1; letter-spacing: -.025em; margin-bottom: 16px; }
+.nz-home .sec-desc { font-size: 17px; color: var(--ink-soft); }
+
+.nz-home .pairs { display: grid; gap: 14px; }
+.nz-home .pair { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; display: grid; gap: 14px; }
+.nz-home .pair .label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.nz-home .pair .label.is-pain { color: var(--ink-mute); }
+.nz-home .pair .label.is-fix { color: var(--terra); }
+.nz-home .pair p { font-size: 15.5px; color: var(--ink-soft); }
+.nz-home .pair .fix p { color: var(--espresso); }
+
+.nz-home .cards { display: grid; gap: 14px; }
+.nz-home .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px; transition: transform .35s, box-shadow .35s; }
+.nz-home .card:hover { transform: translateY(-3px); box-shadow: 0 22px 50px -26px rgba(44, 24, 16, .3); }
+.nz-home .card h3 { font-family: var(--font-playfair), serif; font-weight: 500; font-size: 22px; margin-bottom: 8px; }
+.nz-home .card p { color: var(--ink-soft); font-size: 15px; }
+.nz-home .tag { display: inline-block; margin-top: 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--terra); background: var(--terra-soft); padding: 4px 10px; border-radius: 6px; }
+
+.nz-home .why-grid { display: grid; gap: 28px 40px; }
+.nz-home .why-item { border-top: 2px solid var(--line-strong); padding-top: 18px; }
+.nz-home .why-item h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.nz-home .why-item p { color: var(--ink-soft); font-size: 15px; }
+
+/* offer */
+.nz-home .offer { background: var(--espresso); color: var(--cream); border-radius: 26px; padding: 40px 22px; }
+.nz-home .offer .sec-tag { color: #E8A07A; }
+.nz-home .offer .sec-title { color: var(--cream); }
+.nz-home .offer .sec-desc { color: rgba(245, 240, 232, .72); }
+.nz-home .perks { display: grid; gap: 12px; max-width: 880px; margin: 0 auto 34px; }
+.nz-home .perk { border: 1px solid rgba(245, 240, 232, .16); border-radius: 14px; padding: 18px 20px; }
+.nz-home .perk h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--cream); }
+.nz-home .perk p { font-size: 14px; color: rgba(245, 240, 232, .68); }
+.nz-home .offer-nums { text-align: center; color: rgba(245, 240, 232, .8); font-size: 14px; margin-bottom: 22px; }
+.nz-home .offer-cta { text-align: center; }
+
+/* faq */
+.nz-home .faq { max-width: 760px; margin: 0 auto; border-top: 1px solid var(--line); }
+.nz-home .faq details { border-bottom: 1px solid var(--line); }
+.nz-home .faq summary { cursor: pointer; list-style: none; padding: 20px 4px; font-size: 17px; font-weight: 500; display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+.nz-home .faq summary::-webkit-details-marker { display: none; }
+.nz-home .faq summary::after { content: '+'; font-size: 22px; color: var(--terra); flex-shrink: 0; transition: transform .25s; }
+.nz-home .faq details[open] summary::after { transform: rotate(45deg); }
+.nz-home .faq details p { padding: 0 4px 22px; color: var(--ink-soft); font-size: 15.5px; max-width: 64ch; }
+
+/* waitlist form */
+.nz-home .wl-card { max-width: 640px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px 20px; }
+.nz-home .nz-form { display: grid; gap: 16px; }
+.nz-home .nz-row { display: grid; gap: 16px; }
+.nz-home .nz-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.nz-home .nz-field input, .nz-home .nz-field select { width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; color: var(--espresso); }
+.nz-home .nz-field input:focus, .nz-home .nz-field select:focus { outline: none; border-color: var(--terra); box-shadow: 0 0 0 4px var(--terra-soft); }
+.nz-home .nz-field [aria-invalid='true'] { border-color: #B3321F; }
+.nz-home .nz-err { color: #B3321F; font-size: 13px; margin-top: 6px; }
+.nz-home .nz-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.nz-home .nz-submit { width: 100%; }
+.nz-home .nz-fine { font-size: 12.5px; color: var(--ink-mute); text-align: center; }
+.nz-home .nz-success { text-align: center; padding: 14px 6px; }
+.nz-home .nz-success-mark { width: 52px; height: 52px; border-radius: 50%; background: var(--terra-soft); color: var(--terra); display: grid; place-items: center; font-size: 24px; margin: 0 auto 14px; }
+.nz-home .nz-success h3 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+.nz-home .nz-success p { color: var(--ink-soft); margin-bottom: 8px; }
+.nz-home .nz-success .ur { font-size: 18px; color: var(--espresso); }
+
+/* footer */
+.nz-home footer { background: var(--espresso); color: rgba(245, 240, 232, .66); padding: 56px 0 32px; }
+.nz-home .foot-in { display: grid; gap: 32px; }
+.nz-home .foot-brand p { font-size: 14px; max-width: 34ch; margin-top: 12px; }
+.nz-home .foot-brand .logo { color: var(--cream); }
+.nz-home .foot-brand .logo-mark { background: var(--terra); color: #fff; }
+.nz-home .foot-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+.nz-home .foot-col h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: rgba(245, 240, 232, .45); margin-bottom: 14px; font-weight: 600; }
+.nz-home .foot-col a { display: block; font-size: 14px; color: rgba(245, 240, 232, .8); text-decoration: none; margin-bottom: 10px; }
+.nz-home .foot-col a:hover { color: #fff; text-decoration: underline; }
+.nz-home .foot-bottom { margin-top: 36px; padding-top: 22px; border-top: 1px solid rgba(245, 240, 232, .12); font-size: 12.5px; display: flex; flex-direction: column; gap: 8px; color: rgba(245, 240, 232, .5); }
+
+/* legal pages */
+.nz-home .legal { padding: 110px 0 70px; }
+.nz-home .legal .wrap { max-width: 780px; }
+.nz-home .legal h1 { font-family: var(--font-playfair), serif; font-weight: 500; font-size: clamp(32px, 7vw, 48px); line-height: 1.1; letter-spacing: -.02em; margin-bottom: 14px; }
+.nz-home .legal h2 { font-family: var(--font-playfair), serif; font-weight: 500; font-size: 24px; margin: 38px 0 10px; }
+.nz-home .legal p, .nz-home .legal li { color: var(--ink-soft); font-size: 16px; margin-bottom: 12px; }
+.nz-home .legal ul { list-style: disc; padding-left: 22px; margin-bottom: 12px; }
+.nz-home .legal a { color: var(--terra); }
+.nz-home .draft-note { background: var(--terra-soft); border: 1px solid rgba(196, 98, 45, .35); color: var(--espresso); border-radius: 12px; padding: 12px 16px; font-size: 14px; font-weight: 500; margin: 18px 0 8px; }
+.nz-home .todo { background: #fff3c4; color: #5a4300; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+
+/* register (closed / open) */
+.nz-home .center-page { padding: 120px 0 80px; text-align: center; }
+.nz-home .center-page .card { max-width: 560px; margin: 0 auto; }
+
+/* motion: content is visible by default; only hidden once JS has checked the viewport */
+@media (prefers-reduced-motion: no-preference) {
+  .nz-home[data-reveal] .reveal:not(.in) { opacity: 0; transform: translateY(22px); }
+  .nz-home .reveal { transition: opacity .8s cubic-bezier(.16, 1, .3, 1), transform .8s cubic-bezier(.16, 1, .3, 1); }
+}
+
+/* ---------- larger screens ---------- */
+@media (min-width: 720px) {
+  .nz-home .wrap, .nz-home .nav-in { padding-left: 32px; padding-right: 32px; }
+  .nz-home .hero-actions { flex-direction: row; justify-content: center; max-width: none; }
+  .nz-home .nav-signin { display: inline-flex; }
+  .nz-home .pair { grid-template-columns: 1fr 1fr; gap: 36px; padding: 28px 32px; }
+  .nz-home .cards { grid-template-columns: repeat(2, 1fr); }
+  .nz-home .why-grid { grid-template-columns: repeat(2, 1fr); }
+  .nz-home .perks { grid-template-columns: repeat(2, 1fr); }
+  .nz-home .nz-row { grid-template-columns: 1fr 1fr; }
+  .nz-home .wl-card { padding: 34px; }
+  .nz-home .offer { padding: 56px 40px; }
+  .nz-home .foot-in { grid-template-columns: 1.2fr 2fr; }
+  .nz-home .foot-bottom { flex-direction: row; justify-content: space-between; }
+  .nz-home .section { padding: 96px 0; }
+}
+@media (min-width: 960px) {
+  .nz-home .nav-links { display: flex; }
+  .nz-home .cards { grid-template-columns: repeat(3, 1fr); }
+  .nz-home .cards .card.wide { grid-column: span 1; }
+  .nz-home .hero { padding: 150px 0 72px; }
+}

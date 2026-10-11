@@ -1,5 +1,47 @@
 # PROGRESS
 
+## Session 3 — marketing site, register, waitlist, legal, technical SEO (branch `session-03-marketing`, merged to main)
+
+### Done
+- Git housekeeping: origin already had Sessions 1-2 via merged PRs; merged into local main and pushed (`e4b0553`), deleted the two remote session branches. New rule in CLAUDE.md: session branches stay local, merge to main and push main only, no PRs.
+- Brand: "Nizamo" everywhere (metadata, login, sidebar, package name, README). Every URL derives from `NEXT_PUBLIC_ROOT_DOMAIN` (production `getnizamo.com`) via `lib/site.js`.
+- Homepage (audit H8): server component in `app/(marketing)`, sections in order: hero ("Pakistan ka school, Pakistan ka system"), pain to solution, modules, why Nizamo, Founding Schools offer, FAQ, waitlist form, footer. Inter + Playfair via `next/font`; content visible without JS; progressive reveal respects reduced motion; no counters/orbs; palette tokens only; mobile first (2.1 kB page JS, 98 kB first load). Modules are labelled "In development" (honest). Offer copy lives only in `lib/offer.js` (no prices/numbers yet).
+- Waitlist: migration `003_waitlist.sql` (RLS on, no policies, API roles revoked, unique normalised WhatsApp); `POST /api/waitlist` (zod, PK phone normalisation to +923XXXXXXXXX, honeypot, 5/h/IP limit, duplicate check, admin-client insert); form success state in English + Urdu; `/admin/waitlist` (superadmin: filters, status change, CSV export with formula-injection protection).
+- Register: `/register` rebuilt (live address check via `/api/schools/available`, zod, bcrypt, `register_school()`); gated by `NEXT_PUBLIC_SIGNUP_OPEN` (false = Founding Schools page, noindex, CTAs go to the waitlist). Tested open: validation, reserved/duplicate address, school + principal + settings created, new principal can sign in.
+- Unknown subdomain: clean 404 ("This school isn't on Nizamo yet"); `www` to apex 308; a school's own `/` goes to login; all school addresses noindex; internal existence check guarded by a secret header.
+- Legal: `/privacy` and `/terms` in plain English, visible "Draft — to be reviewed before launch" banner, operator name/address are marked TODO (`lib/site.js`), linked from footer and register page.
+- Technical SEO (marketing pages only): `pageMetadata()` per page, root-domain canonicals, Open Graph + Twitter large-card tags, static brand OG/Twitter/icon PNGs (`npm run brand:images`), `sitemap.js`, `robots.js` (disallows /school, /admin, /login, /signed-out, /api), JSON-LD Organization + SoftwareApplication (EducationalApplication) + FAQPage (matches visible FAQ), lang attributes, one h1 per page, no images without alt, `X-Robots-Tag: noindex` on private routes and school subdomains.
+
+### Verification
+- `npm run build` passes; `npm run test:unit` 5/5; `npm run test:waitlist` 19/19; `npm run test:tenant` 57/57 (re-run after the middleware changes).
+- Live checks with a dev server (host headers): robots, sitemap, canonical/OG/Twitter tags, JSON-LD parses (3 types, 6 FAQ entries = 6 visible), subdomain routing, security headers; admin page, filter, CSV, status change as superadmin; principal refused (307/403).
+- NOT verified: visual rendering in a real browser (no browser tool in this session), Google Rich Results, mobile device testing. See "How to verify SEO" below.
+
+### How to verify SEO after deploy (Lighthouse is not proof)
+1. View source of `/`: one `<h1>`, `<title>`, meta description, `<link rel="canonical" href="https://getnizamo.com">`, `og:*` and `twitter:*` tags, three JSON-LD types.
+2. Paste the live URL into Google's Rich Results Test and the Schema Markup Validator (FAQPage should validate; SoftwareApplication has no `offers` yet, so no rich result is expected).
+3. Fetch `/robots.txt` and `/sitemap.xml`; confirm only marketing URLs are listed.
+4. `curl -I https://ghs.getnizamo.com/login` shows `X-Robots-Tag: noindex, nofollow`; an unknown subdomain returns 404.
+5. Add the domain to Google Search Console, submit the sitemap, use URL Inspection on `/`, and watch Coverage for school subdomains (should stay excluded).
+6. Share the URL in WhatsApp/Twitter debuggers to check the social card.
+
+### Decisions
+- Static pre-rendered PNGs instead of `next/og` (Windows build bug in Next 14.2). Sitemap/robots are `.js` (project is JavaScript).
+- `/api/schools/available` added for registration (the old check endpoint only finds active schools).
+- In-memory rate limits (waitlist, register, availability) are per server instance; move to Redis/Upstash when running multiple instances.
+- Register has no email verification yet, another reason signup stays closed.
+
+### Known issues / to do before launch
+- Fill the TODO operator name and address in `lib/site.js`; have a lawyer review `/privacy` and `/terms`; remove the draft banner then.
+- Add Founding Schools numbers in `lib/offer.js` when decided.
+- CSP is still report-only; Next.js advisories needing Next 16 remain; dashboard still has its older palette (M11), hard-coded academic year (M9), M3/M7/M8.
+- `www.<root>` and wildcard `*.<root>` DNS plus a wildcard TLS certificate are needed in production.
+
+### Next session
+Roles expansion (roadmap module 1): add accountant, receptionist, parent and student users and nav, a role/permission admin view, then the Students + General Register module.
+
+---
+
 ## Session 2 — security + foundation (branch `session-02-security`)
 
 ### Done
