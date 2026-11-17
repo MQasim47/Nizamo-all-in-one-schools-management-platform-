@@ -1,5 +1,22 @@
 # PROGRESS
 
+## Current state — verified 17 Nov 2026 (status recovery, branch `status-2026-11`)
+
+Full report: `docs/STATUS-2026-11.md`. Remaining work: `docs/ROADMAP.md` (next: **Session 6**).
+
+- **main** = Sessions 1-4 (`828b42e`), in sync with origin. **Session 5 (`session-05-app-ui`, 2 commits) is complete but NOT merged**: migration 004 is not applied on the dev DB and the founder's browser check was never recorded.
+- **Built and working:** auth (lockout, session re-check), subdomain multi-tenancy, RLS (57/57), audit log triggers, marketing site, waitlist, register (closed), legal drafts, SEO; on the unmerged branch: design system, SVG logo (from `docs/brand/logo-reference.jpg`), app shell, login, principal dashboard shell, Hijri setting.
+- **Not built:** every school module (staff, sessions, classes UI, students/GR, import, SLC, attendance, alerts, exams, marksheets, fees, parent portal, notices, homework, ID cards), the superadmin schools panel, deployment. `lib/db/students.js` and `lib/db/classes.js` helpers exist without pages or APIs. Roughly 20% of the web product.
+- **Health (17 Nov):** `check:db` FAIL (only `school_settings.hijri_offset`, migration 004); `test:tenant` 57/57, `test:waitlist` 19/19, `test:app` 19/19, `test:unit` 13/13, `test:pdf` pass, `test:nav` 15/15, lint 0 errors / 5 warnings; `build` passes but the first run on a machine stops with `SecurityFatalError` (Next 16.4.0 advisory); `npm audit` 10 (1 critical `next`, 1 high `zod`, 8 moderate).
+- **Migrations on the dev DB:** schema (001), 002, 003 applied; **004 not applied**. No migration tracking.
+- **Risks now:** Next 16.4.0 critical advisory, reachable through `images.remotePatterns` (`*.supabase.co` public) in `next.config.js`; zod 4.6.5 high advisory; no CI; no error monitoring; no production DB/backups; manual migrations.
+- **Corrections to older entries below:** Session 4's "every Next.js advisory is gone" was true then; new advisories since make `next` critical again. Session 3's static brand PNGs were replaced by `next/og` routes in Session 4. Test scripts default to port 3100; on this machine 3100 is used by another project, so set `TEST_BASE` (e.g. `http://localhost:3101`).
+
+### Next session
+Session 6 in `docs/ROADMAP.md`: run migration 004, browser-check and merge Session 5, upgrade `next` to 16.4.6 and `zod` to ≥4.6.6, narrow `images.remotePatterns`.
+
+---
+
 ## Session 5 — app UI redesign (branch `session-05-app-ui`, NOT merged yet: waiting for the founder's browser check)
 
 ### Done
@@ -42,7 +59,7 @@
 - **Bug fixed: blank homepage after client-side navigation** (from /register, /privacy, browser Back). Cause: `MarketingEffects` lives in the marketing layout, which persists across routes; it ran once, set `data-reveal` on the persistent `.nz-home` root and never removed it, so the freshly mounted homepage sections (no `in` class) stayed at `opacity:0`. Fix: the effect re-initialises on every pathname change and removes `data-reveal` on cleanup, so the hidden state only exists while it is live. The IntersectionObserver became a scroll sweep (reveals anything at or above the viewport edge, and everything at page end), because fast scrolling or a hash jump could skip past the observer and strand a section.
 - New `npm run test:nav` (playwright-core + installed Chrome/Edge, run against a dev server on :3100): navigates client-side from /register and /privacy via the logo, `/#waitlist` and Back, and asserts content is visible and nothing stays hidden after scrolling. 15 checks; on the old code it fails with 20 hidden sections.
 - CSP stays report-only; enforcing is postponed until after the homepage redesign. `AGENTS.md` (written by the Next 16 dev server) is in `.gitignore`.
-- `npm audit`: 14 → 9 (0 critical). Remaining are Tailwind 3 / eslint-config-next build-time chains, listed in `docs/AUDIT.md` as known/low risk.
+- `npm audit`: 14 → 9 (0 critical). Remaining are Tailwind 3 / eslint-config-next build-time chains, listed in `docs/AUDIT.md` as known/low risk. *(Outdated as of 17 Nov 2026: 10 findings incl. a critical `next` and a high `zod` advisory; see the current-state section.)*
 
 ### Verification
 `npm run build` (Turbopack), `npm run lint` (0 errors), `test:unit` 5/5, `test:pdf`, `check:db`, `test:tenant` 57/57, `test:waitlist` 19/19. Live on the dev server with `NEXT_PUBLIC_ROOT_DOMAIN=nizamo.test`: `ghs.` host shows the GHS login; unknown host 404; `www` 308 to apex; school `/` → `/login`; wrong password 401, right password gives a session with the correct role/school; dashboard 200 on own host, redirect to `/signed-out?reason=wrong-school` on another school's host; no session → login.
