@@ -28,16 +28,10 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
-  },
+  // No remote images: nothing uses next/image, and student photos/logos live in PRIVATE storage
+  // served through short-lived signed URLs. A wildcard like *.supabase.co would let the image
+  // optimizer fetch from any attacker's Supabase project. If next/image is ever needed for our own
+  // storage, allow only our project host (from NEXT_PUBLIC_SUPABASE_URL), never a wildcard.
 
   async headers() {
     return [

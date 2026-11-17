@@ -1,6 +1,29 @@
 # PROGRESS
 
-## Current state — verified 17 Nov 2026 (status recovery, branch `status-2026-11`)
+## Session 6 — close out Session 5 + security patches (branch `session-05-app-ui`, awaiting founder's browser check before merge)
+
+### Done
+- Migration 004 applied on dev by the founder; `check:db` all green.
+- Merged main (status-recovery docs) into `session-05-app-ui`; PROGRESS.md conflict resolved with main's version (it already carried the Session 5 entry).
+- **CLAUDE.md**: added "Definition of Done" and "Reliability rules" exactly as proposed in `docs/STATUS-2026-11.md` §6; new "Architecture rules" section with the four mobile decisions (API-first `lib/services/*` + `/api/v1`; phone-number identity for parents; one family/guardian model; one notification outbox); test port rule (3101 default, `TEST_BASE` override, never touch 3100); pointer to `docs/ROADMAP.md`.
+- **Security**: `next` 16.4.0 → **16.4.6**, `eslint-config-next` → 16.4.6, `zod` 4.6.5 → **4.6.7**, `npm audit fix` (lockfile only, no major bumps) → **0 vulnerabilities**.
+- **`images.remotePatterns` removed** from `next.config.js` (not narrowed): no file uses `next/image`, and school images must come from private storage via signed URLs, so the image optimizer should fetch nothing remote. Comment explains: if ever needed, allow only our project host from `NEXT_PUBLIC_SUPABASE_URL`.
+- **Lint 0 warnings**: the 5 `set-state-in-effect` warnings fixed: new `lib/hooks/use-stored-value.js` (`useSyncExternalStore` over localStorage with memory fallback) for sidebar collapse (`AppShell`) and table density (`DataTable`); drawer closes on navigation by adjusting state during render; Ctrl/⌘ label via `useSyncExternalStore`; `RegisterForm` derives availability from the last answer instead of setting state in the effect; `WaitlistForm` reads UTM source at submit time.
+- Test scripts and screenshot helpers default to `http://localhost:3101` (`TEST_BASE` overrides).
+
+### Verification (17 Nov 2026)
+Clean state (`.next` and `node_modules/.cache` deleted) → `npm run build` passes on the **first** run, no security stop. `check:db` all passed; `test:tenant` 57/57; `test:waitlist` 19/19; `test:app` 19/19; `test:unit` 13/13; `test:pdf` pass; `test:nav` 15/15 (all on the default port 3101); `npm run lint` 0 errors 0 warnings; `npm audit` 0. Browser smoke (real Chrome, dev server with `NEXT_PUBLIC_ROOT_DOMAIN=localhost`): `/design` 200; `ghs.localhost:3101/` → GHS login; unknown subdomain 404; principal and teacher sign in on the subdomain; dashboard greeting, Gregorian + Hijri date, glance and activity render; no console errors; 360px: no horizontal overflow, drawer opens; superadmin via `admin.localhost:3101` and `localhost:3101/login?school=admin` reaches `/admin/waitlist`.
+
+### Known issues / next
+- Founder browser check pending; merge to main after confirmation.
+- Topbar session pill shows "Session 2025–2026" (hard-coded academic year, audit M9) — fixed by the academic sessions work (ROADMAP Session 10).
+- `CLAUDE.md` "Roles" section and `schema.sql:35` still describe 3 roles (migration 002 allows 7); fix with the staff/roles session.
+- Dev console notes `scroll-behavior: smooth` on `<html>` without `data-scroll-behavior` (cosmetic).
+- Next: Session 7 (reliability foundation) per `docs/ROADMAP.md`.
+
+---
+
+## Status recovery — verified 17 Nov 2026 (branch `status-2026-11`, merged)
 
 Full report: `docs/STATUS-2026-11.md`. Remaining work: `docs/ROADMAP.md` (next: **Session 6**).
 

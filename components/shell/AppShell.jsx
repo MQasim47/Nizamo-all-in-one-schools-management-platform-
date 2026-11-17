@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -11,7 +11,10 @@ import Menu from '@/components/ui/Menu'
 import Modal from '@/components/ui/Modal'
 import { Input } from '@/components/ui/FormControl'
 import { initials } from '@/lib/utils/format'
+import { useStoredValue } from '@/lib/hooks/use-stored-value'
 import { ICONS } from './icons'
+
+const noSubscribe = () => () => {}
 
 // The app frame shared by the school portal and the super-admin area.
 //   brand:  { name, logoUrl? }         the SCHOOL's identity (this is their portal)
@@ -142,16 +145,19 @@ function SidebarBody({ brand, nav, user, activeHref, collapsed, onSelect, onSign
 export default function AppShell({ brand, nav, user, sessionLabel, onSignOut, activeHref, onNavigate, embedded = false, children }) {
   const pathname = usePathname()
   const active = activeHref ?? pathname
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsedPref, setCollapsedPref] = useStoredValue(STORAGE_KEY, '0')
+  const collapsed = collapsedPref === '1'
   const [drawer, setDrawer] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [mod, setMod] = useState('Ctrl')
+  const mod = useSyncExternalStore(noSubscribe, () => (/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'), () => 'Ctrl')
   const drawerRef = useRef(null)
 
-  useEffect(() => {
-    try { setCollapsed(localStorage.getItem(STORAGE_KEY) === '1') } catch {}
-    if (/Mac|iPhone|iPad/.test(navigator.platform)) setMod('⌘')
-  }, [])
+  // close the drawer after any navigation (adjusting state during render, not in an effect)
+  const [drawerPath, setDrawerPath] = useState(active)
+  if (drawerPath !== active) {
+    setDrawerPath(active)
+    setDrawer(false)
+  }
 
   useEffect(() => {
     function onKey(e) {
@@ -164,8 +170,7 @@ export default function AppShell({ brand, nav, user, sessionLabel, onSignOut, ac
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // close the drawer after any navigation, and on Escape
-  useEffect(() => { setDrawer(false) }, [active])
+  // close the drawer on Escape
   useEffect(() => {
     if (!drawer) return
     const prev = document.body.style.overflow
@@ -177,10 +182,7 @@ export default function AppShell({ brand, nav, user, sessionLabel, onSignOut, ac
   }, [drawer, embedded])
 
   function toggleCollapsed() {
-    setCollapsed((c) => {
-      try { localStorage.setItem(STORAGE_KEY, c ? '0' : '1') } catch {}
-      return !c
-    })
+    setCollapsedPref(collapsed ? '0' : '1')
   }
 
   const select = onNavigate ? (e, href) => { e.preventDefault(); onNavigate(href) } : undefined

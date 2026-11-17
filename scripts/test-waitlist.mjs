@@ -1,6 +1,6 @@
 // Waitlist API test. Run against a running server, with migration 003 applied:
-//   npm run dev -- -p 3100        (in another terminal)
-//   TEST_BASE=http://localhost:3100 npm run test:waitlist
+//   npm run dev -- -p 3101        (in another terminal)
+//   TEST_BASE=http://localhost:3101 npm run test:waitlist
 // Uses a unique fake client IP per case (x-forwarded-for) so it never trips the limiter for real
 // visitors, creates one throwaway row, and removes it afterwards.
 import { readFileSync, existsSync } from 'node:fs'
@@ -14,7 +14,7 @@ if (existsSync(envUrl)) {
     if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '')
   }
 }
-const BASE = process.env.TEST_BASE || 'http://localhost:3100'
+const BASE = process.env.TEST_BASE || 'http://localhost:3101'
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } })
 

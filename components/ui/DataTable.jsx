@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useStoredValue } from '@/lib/hooks/use-stored-value'
 import clsx from 'clsx'
 import { ArrowDown, ArrowUp, ArrowUpDown, Ellipsis } from 'lucide-react'
 import Menu from './Menu'
@@ -22,18 +23,8 @@ const DENSITY = {
 function useDensity() {
   const { data } = useSession()
   const key = `nz-density:${data?.user?.id || 'guest'}`
-  const [density, setDensity] = useState('comfortable')
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(key)
-      if (v === 'compact' || v === 'comfortable') setDensity(v)
-    } catch {}
-  }, [key])
-  const set = (v) => {
-    setDensity(v)
-    try { localStorage.setItem(key, v) } catch {}
-  }
-  return [density, set]
+  const [stored, set] = useStoredValue(key, 'comfortable')
+  return [stored === 'compact' ? 'compact' : 'comfortable', set]
 }
 
 export default function DataTable({ columns, rows, rowKey = 'id', rowActions, empty, caption, initialSort, toolbar, loading = false, error = false, onRetry, className }) {

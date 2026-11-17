@@ -1,5 +1,5 @@
 // Live permission checks for the app shell and the school settings API.
-//   npm run dev -- -p 3100   then   npm run test:app
+//   npm run dev -- -p 3101   then   npm run test:app
 // Signs in through NextAuth like a browser does (cookie jar), as the demo principal and teacher.
 // Needs the demo accounts (npm run demo:passwords). Changes nothing: every write attempt here is
 // either refused or invalid.
@@ -12,7 +12,7 @@ const env = Object.fromEntries(
     .filter(Boolean)
     .map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')])
 )
-const BASE = process.env.TEST_BASE || 'http://localhost:3100'
+const BASE = process.env.TEST_BASE || 'http://localhost:3101'
 let pass = 0, fail = 0
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  -> ' + extra}`) }
 

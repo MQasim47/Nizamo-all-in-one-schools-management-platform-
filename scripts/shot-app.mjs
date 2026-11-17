@@ -1,11 +1,11 @@
 // Dev helper: sign in through the real login page and screenshot app pages.
-// node scripts/shot-app.mjs <outDir>   (needs the dev server on :3100 and demo passwords in .env.local)
+// node scripts/shot-app.mjs <outDir>   (needs the dev server on :3101 and demo passwords in .env.local)
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
 const env = Object.fromEntries(readFileSync(new URL('../.env.local', import.meta.url), 'utf8').split(/\r?\n/).map((l) => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]))
 const out = process.argv[2]
-const BASE = 'http://localhost:3100'
+const BASE = process.env.TEST_BASE || 'http://localhost:3101'
 const b = await chromium.launch({ channel: 'chrome' })
 const errors = []
 

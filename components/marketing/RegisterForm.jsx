@@ -16,35 +16,43 @@ const AVAIL_TEXT = {
 export default function RegisterForm({ rootDomain }) {
   const [values, setValues] = useState(EMPTY)
   const [errors, setErrors] = useState({})
-  const [avail, setAvail] = useState({ state: 'idle' }) // idle | checking | ok | bad
+  // Last server answer, tagged with the address it was for; `avail` is derived from it.
+  const [check, setCheck] = useState({ sub: '', result: null })
   const [accepted, setAccepted] = useState(false)
   const [status, setStatus] = useState('idle') // idle | sending | done | error | limited
   const [createdSub, setCreatedSub] = useState('')
 
   const set = (k) => (e) => setValues((v) => ({ ...v, [k]: k === 'subdomain' ? e.target.value.toLowerCase().trim() : e.target.value }))
 
+  // idle | checking | ok | bad
+  const sub = values.subdomain
+  const avail = !sub
+    ? { state: 'idle' }
+    : !SUB_RE.test(sub)
+      ? { state: 'bad', reason: 'invalid' }
+      : check.sub === sub && check.result
+        ? check.result
+        : { state: 'checking' }
+
   // Live availability: debounced, and stale answers are ignored.
   useEffect(() => {
-    const sub = values.subdomain
-    if (!sub) return setAvail({ state: 'idle' })
-    if (!SUB_RE.test(sub)) return setAvail({ state: 'bad', reason: 'invalid' })
-    setAvail({ state: 'checking' })
+    if (!sub || !SUB_RE.test(sub)) return
     let cancelled = false
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/schools/available?subdomain=${encodeURIComponent(sub)}`)
         const data = await res.json()
         if (cancelled) return
-        setAvail(data.available ? { state: 'ok' } : { state: 'bad', reason: data.reason })
+        setCheck({ sub, result: data.available ? { state: 'ok' } : { state: 'bad', reason: data.reason } })
       } catch {
-        if (!cancelled) setAvail({ state: 'idle' })
+        if (!cancelled) setCheck({ sub, result: { state: 'idle' } })
       }
     }, 400)
     return () => {
       cancelled = true
       clearTimeout(t)
     }
-  }, [values.subdomain])
+  }, [sub])
 
   async function onSubmit(e) {
     e.preventDefault()

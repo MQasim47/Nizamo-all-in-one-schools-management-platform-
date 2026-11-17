@@ -1,9 +1,9 @@
 // Regression test: client-side navigation back to the homepage must never leave it blank.
 // Needs a running server and Chrome or Edge installed:
-//   npm run dev -- -p 3100   then   TEST_BASE=http://localhost:3100 npm run test:nav
+//   npm run dev -- -p 3101   then   TEST_BASE=http://localhost:3101 npm run test:nav
 import { chromium } from 'playwright-core'
 
-const BASE = process.env.TEST_BASE || 'http://localhost:3100'
+const BASE = process.env.TEST_BASE || 'http://localhost:3101'
 let pass = 0, fail = 0
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  -> ' + extra}`) }
 

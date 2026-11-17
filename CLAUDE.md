@@ -11,11 +11,12 @@ Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<s
 - `npm run dev` — dev server at http://localhost:3000
 - `npm run build` / `npm start` — production build / serve
 - `npm run lint` — `eslint .` (flat config in `eslint.config.mjs`; `next lint` no longer exists in Next 16)
-- `npm run test:unit` — unit tests (`tests/`: phone normaliser, CSV safety).
-- `npm run test:waitlist` — waitlist/admin/register API checks against a running server (`TEST_BASE=http://localhost:3100`, start it with `npm run dev -- -p 3100`).
+- `npm run test:unit` — unit tests (`tests/`: phone normaliser, CSV safety, money, dates, menu, logo).
+- **Test port: 3101 by default** (port 3100 is used by another project on the founder's machine). Start the server with `npm run dev -- -p 3101`; override with `TEST_BASE=http://localhost:<port>`.
+- `npm run test:waitlist` — waitlist/admin/register API checks against a running server.
 - `npm run test:pdf` — proves `@react-pdf/renderer` renders a PDF (needed for SLC, marksheets, challans).
-- `npm run test:app` — live permission checks for the settings API and per-role menus (dev server on :3100).
-- `npm run test:nav` — browser regression test (needs a dev server on :3100 and Chrome/Edge): client-side navigation back to the homepage must never leave it blank.
+- `npm run test:app` — live permission checks for the settings API and per-role menus (needs the server).
+- `npm run test:nav` — browser regression test (needs the server and Chrome/Edge): client-side navigation back to the homepage must never leave it blank.
 - `npm run test:tenant` — proves tenant isolation through per-user tokens against the dev project (seeds and removes two throwaway schools). Run after any schema/policy change.
 - `npm run demo:passwords` — gives the demo accounts unique strong passwords (writes `.env.local`).
 - `npm run check:db` — backend health check ([scripts/check-db.mjs](scripts/check-db.mjs)): Supabase reachable, schema matches the columns the code uses, demo school `ghs` exists, NextAuth login path works. Run it first when anything backend-related breaks (free Supabase projects pause when idle).
@@ -71,6 +72,15 @@ Nizamo: an all-in-one school ERP, Pakistan-first, international later. Different
 - Every edit to marks, fees or the General Register is auditable: DB triggers write `audit_log` (add the trigger to any new auditable table).
 - Never pass a request payload straight into `.update()` / `.insert()`; whitelist columns.
 
+## Architecture rules (standing; the web must be ready for the parent/teacher mobile app)
+
+Background: `docs/STATUS-2026-11.md` §5. These hold for every module from now on.
+
+- **API-first.** Module logic lives in `lib/services/<module>.js` (takes the `ctx` from `getSchoolClient`, validates with zod). Web pages call the service directly; every read and write is also exposed as a versioned route handler under `/api/v1/...` that calls the same service. No Server Actions for data writes, and no business logic in pages or components.
+- **Phone-number login for parents (design now, build later).** Parents are identified by a normalised Pakistani mobile (`+923XXXXXXXXX`, `lib/utils/phone.mjs`), unique per school; email is optional for parent/student users. Never design a parent flow that assumes an email address. OTP sign-in arrives with the mobile app; until then parents use phone + password.
+- **One family/guardian model.** `families` + `guardians` + `student_guardians` (designed in the Students session) is the single source for General Register guardians, fee family accounts and sibling discounts, and parent app access (a parent `users` row links to a guardian). Do not create a second parent, guardian or family table in any module.
+- **One notification queue.** Every outbound message (absent alerts, fee reminders, notices, results) is a row in one `notification_outbox`, written by the service in the same transaction as the event that caused it, and sent by one worker with retries. WhatsApp is the channel now; push (FCM/Expo) is added later as another channel on the same queue. No module sends messages directly to a provider.
+
 ## Roles
 
 Currently `superadmin`, `principal`, `teacher` (also a CHECK constraint on `users.role` in `schema.sql`). Planned: accountant, receptionist, parent, student, plus per-permission control. Don't add more hardcoded `role === 'x'` branches (Sidebar, school layout); route access through a permission map so new roles and permissions don't require touching every call site.
@@ -82,6 +92,8 @@ Currently `superadmin`, `principal`, `teacher` (also a CHECK constraint on `user
 - Don't treat Lighthouse scores as proof of SEO quality.
 
 ## Module roadmap (one module per session, in this order)
+
+The session-by-session plan with scope, tests and definition of done per session is [docs/ROADMAP.md](docs/ROADMAP.md); it supersedes the order below where they differ.
 
 Tier 1:
 1. Roles expansion
@@ -99,6 +111,40 @@ Tier 2: timetable with clash detection, homework/diary, notices to WhatsApp, sta
 
 Tier 3: transport, library, hostel, inventory, quizzes, AI features, multi-campus, native apps.
 
+## Definition of Done (every module, before merge to main)
+
+A module is done only when all of these are true. If one is skipped, say so in PROGRESS.md and ask before merging.
+
+1. **Works for every role that touches it**: each permitted role can do its job; each other role gets 403 from the API and no menu item (`lib/nav.mjs` `built: true` only now).
+2. **Service + API**: logic lives in `lib/services/<module>.js` (takes `ctx`), exposed through `/api/v1/...` route handlers with zod `.strict()` input and the standard error envelope. Pages call the service, never raw queries. No Server Actions for data writes.
+3. **Database**: migration file `supabase/migrations/NNN_*.sql`, recorded in `schema_migrations`, applied to dev, `check:db` green. New tables: `school_id`, RLS, policies on `app.school_id()` + `app.can()`, explicit GRANTs, composite `(school_id, id)` FKs, audit trigger where the data is marks, fees, GR, roles, settings or attendance.
+4. **Tests**:
+   - unit tests for every calculation (marks, grades, fees, dates, numbering), table-driven, including edge cases;
+   - API tests: happy path, validation 400/422, 401, 403 per role, cross-school 404/empty;
+   - `npm run test:tenant` extended for every new table (cross-school read and write denied);
+   - one E2E browser test of the main flow;
+   - audit test: a change writes one `audit_log` row with old and new values.
+5. **States**: every page has loading, empty (says what to do next) and error states; every destructive action confirms and is reversible where possible.
+6. **Language**: plain English labels; Urdu where it matters (printouts, parent-facing text); no jargon.
+7. **Privacy**: sensitive fields masked in lists; no personal data in URLs, logs or error messages.
+8. **Mobile-ready**: anything a parent or teacher will do on a phone is reachable through `/api/v1` with bearer auth, paginated, and works at 360px on the web.
+9. **Green pipeline**: `npm run lint` (0 errors), all test scripts, `npm run build`, CI green.
+10. **Docs**: PROGRESS.md updated (done, decisions, known issues, next); CLAUDE.md updated if a rule or command changed.
+
+## Reliability rules
+
+- **Money is integer rupees** (`bigint`), never floats. Every fee calculation is a pure function with unit tests; totals are recomputed in SQL and compared in tests.
+- **Marks and grades** are computed by one pure function (`lib/utils/grades.js` rules from the PHP MVP) with tests; stored results never change without an audit row; approved results are locked.
+- **Idempotent writes** for payments, challans, imports and messages: an idempotency key or a unique constraint, so a double click or retry never creates a duplicate.
+- **Transactions** for anything that touches more than one row that must stay consistent (Postgres function/RPC), never several client calls in a row.
+- **Migrations are forward-only and additive**: add columns/tables first, backfill, then switch code, then remove in a later migration. Every migration is applied to dev and recorded in `schema_migrations`; `check:db` fails when the DB is behind the repo. Never edit an applied migration.
+- **No silent failures**: helpers throw typed errors; route handlers map them to the error envelope; unexpected errors go to error monitoring (without personal data).
+- **Dates**: school dates are Pakistan dates (`lib/utils/dates.mjs`); never `toISOString().split('T')[0]`. Academic year comes from the school's current session, never a literal.
+- **Every bug gets a regression test** before the fix is merged.
+- **CI is the gate**: nothing merges to main with a red pipeline; no `--no-verify`.
+- **Dependencies**: `npm audit` has no critical/high findings at merge time; security patches are applied within a week.
+- **Backups**: production runs with point-in-time recovery; a restore is rehearsed before launch and every quarter.
+
 ## Session workflow
 
 - Start every session by reading CLAUDE.md and PROGRESS.md.
@@ -106,6 +152,7 @@ Tier 3: transport, library, hostel, inventory, quizzes, AI features, multi-campu
 - Touch only files inside the session's scope.
 - Never commit secrets.
 - After each module, run `npm run build` and fix errors.
+- Tests run against port **3101** by default (`npm run dev -- -p 3101`), configurable with `TEST_BASE`. Never use or stop whatever is on port 3100: it belongs to another project on the founder's machine.
 - End every session by updating PROGRESS.md: done, decisions, known issues, next session.
 - Report errors with exact file:line.
 - Git: session branches stay LOCAL only; never push them to origin. When tests and build pass, merge the session branch into `main` (fast-forward if possible) and push `main` only. No pull requests. If anything failed or was skipped, ask the user before merging.

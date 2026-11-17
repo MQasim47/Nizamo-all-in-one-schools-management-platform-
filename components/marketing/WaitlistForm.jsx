@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { STUDENT_RANGES } from '@/lib/waitlist-options'
 
 const EMPTY = { school_name: '', contact_name: '', city: '', student_count_range: '', whatsapp: '', email: '', website: '' }
 
-// Collect utm_* parameters once so we know which campaign brought the school in.
+// Collect utm_* parameters (read at submit time) so we know which campaign brought the school in.
 function readSource() {
   try {
     const p = new URLSearchParams(window.location.search)
@@ -20,9 +20,6 @@ export default function WaitlistForm() {
   const [values, setValues] = useState(EMPTY)
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle') // idle | sending | done | duplicate | error | limited
-  const [source, setSource] = useState('')
-
-  useEffect(() => setSource(readSource()), [])
 
   const set = (k) => (e) => setValues((v) => ({ ...v, [k]: e.target.value }))
 
@@ -34,7 +31,7 @@ export default function WaitlistForm() {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...values, source }),
+        body: JSON.stringify({ ...values, source: readSource() }),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.ok) {
