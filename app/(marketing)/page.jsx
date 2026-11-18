@@ -71,7 +71,7 @@ export default function HomePage() {
             <Link href={PRIMARY_CTA_HREF} className="btn btn-clay btn-lg">{PRIMARY_CTA_LABEL}</Link>
             <Link href="#modules" className="btn btn-ghost btn-lg">See what is inside</Link>
           </div>
-          <p className="hero-note">We are onboarding Founding Schools now. Free data setup from your registers.</p>
+          <p className="hero-note">We are onboarding Founding Schools now. Bring your data in with our free Excel template.</p>
 
           <div
             className="preview"

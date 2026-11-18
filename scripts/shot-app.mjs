@@ -44,7 +44,7 @@ for (const w of [1366, 360]) {
 }
 {
   const { p, ctx } = await session(1366, 'admin')
-  await login(p, 'admin@edu4everyone.com', env.DEMO_PASSWORD_SUPERADMIN)
+  await login(p, 'admin@nizamo.test', env.DEMO_PASSWORD_SUPERADMIN)
   await p.getByText(/No new requests|New waitlist requests/).waitFor({ timeout: 30000 })
   await p.screenshot({ path: `${out}/admin-dash.png` })
   await p.goto(`${BASE}/admin/waitlist`, { waitUntil: 'networkidle' })

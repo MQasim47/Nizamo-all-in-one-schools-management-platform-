@@ -4,6 +4,7 @@
 // Needs the demo accounts (npm run demo:passwords). Changes nothing: every write attempt here is
 // either refused or invalid.
 import { readFileSync } from 'node:fs'
+import { createClient } from '@supabase/supabase-js'
 
 const env = Object.fromEntries(
   readFileSync(new URL('../.env.local', import.meta.url), 'utf8')
@@ -93,6 +94,27 @@ try {
   check('teacher dashboard: no "School settings" menu item', !t.includes('School settings'))
   check('teacher dashboard: no recent-activity block (needs audit permission)', !t.includes('Recent activity'))
   check('teacher dashboard: no setup checklist (needs settings permission)', !t.includes('Set up your school'))
+
+  // 4. "Attendance today" counts ONLY the teacher's own classes (regression: it used to count the whole school).
+  //    Expected numbers come straight from the database with the service key (read-only).
+  const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+  const { data: school } = await admin.from('schools').select('id').eq('subdomain', 'ghs').single()
+  const { data: ahmed } = await admin.from('users').select('id').eq('school_id', school.id).eq('email', 'ahmed@ghs.com').single()
+  const { data: cls } = await admin.from('classes').select('id').eq('school_id', school.id)
+  const { data: ta } = await admin.from('teacher_assignments').select('class_id').eq('school_id', school.id).eq('teacher_id', ahmed.id)
+  const allClasses = new Set((cls || []).map((c) => c.id))
+  const ownClasses = new Set((ta || []).map((a) => a.class_id).filter((id) => allClasses.has(id))).size
+  // the block can arrive in the RSC payload, where the "X of N" value follows the label and detail
+  const ofTotal = (text) => Number((text.match(/Attendance today[\s\S]{0,2000}?\b[\d,]+ of ([\d,]+)\b/) || [])[1]?.replace(/,/g, ''))
+  if (ownClasses > 0) {
+    check(`teacher dashboard: attendance counts only Ahmed's ${ownClasses} assigned class(es), not all ${allClasses.size}`, ofTotal(t) === ownClasses, `shown: ${ofTotal(t)}`)
+    const left = Number((t.match(/(\d+)\s+class(?:es)?\s+not marked yet/) || [])[1] || 0)
+    check(`teacher dashboard: "not marked" never exceeds the teacher's own classes`, left <= ownClasses, `shown: ${left}`)
+  } else {
+    check('teacher dashboard: no attendance block when the teacher has no classes', !t.includes('Attendance today'))
+  }
+  const tp = await html(await page(principal, '/school/dashboard'))
+  if (allClasses.size > 0) check(`principal dashboard: attendance counts all ${allClasses.size} classes`, ofTotal(tp) === allClasses.size, `shown: ${ofTotal(tp)}`)
 
   r = await page(teacher, '/admin/waitlist')
   check('teacher cannot open the admin waitlist (redirected)', r.status === 307, r.status)

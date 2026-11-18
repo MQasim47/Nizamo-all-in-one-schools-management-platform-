@@ -1,5 +1,5 @@
 -- ============================================
--- Edu4Everyone — Supabase PostgreSQL Schema
+-- Nizamo — Supabase PostgreSQL Schema
 -- Run this in Supabase SQL Editor FIRST
 -- ============================================
 

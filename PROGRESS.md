@@ -1,6 +1,29 @@
 # PROGRESS
 
-## Session 6 — close out Session 5 + security patches (branch `session-05-app-ui`, awaiting founder's browser check before merge)
+## Session 6 follow-up — founder's browser-check fixes (18 Nov 2026, merged into main)
+
+### Done
+- **Data-entry positioning**: the "free data setup" claim is gone (hero note, Founding Schools perk in `lib/offer.js`, FAQ in `lib/marketing-content.js`). New line: self-import with our Excel template is free; done-for-you entry of existing registers is a paid one-time service quoted by school size (no prices on the site). The FAQ "Do we have to type everything again?" says this and that scanning register pages is coming.
+- **Super admin sidebar** shows the Nizamo logo mark instead of "NA" initials (`brand.mark: 'nizamo'` in `app/admin/layout.jsx`, handled in `AppShell` `SchoolMark`).
+- **Bug fixed: teacher dashboard counted the whole school.** Teachers hold `classes.read`, so "Attendance today" for Ahmed Khan showed "0 of 2" (all classes) instead of his own. Now `lib/dashboard/attendance-glance.mjs` (pure) scopes the numbers to `teacher_assignments` for anyone without `attendance.read_all`. Tests: `tests/attendance-glance.test.mjs` (8 table-driven cases) and two live checks in `test:app` (teacher sees only assigned classes; principal sees all). The live check was run against the old code first and failed ("shown: 2"), then passed with the fix.
+- **Edu4Everyone renamed to Nizamo** in seed data, schema header, login demo shortcut, demo-password script, screenshot script, README, CLAUDE.md and `.env.local`. Super admin is now **`admin@nizamo.test`**, school "Nizamo Admin". Dev DB updated (school name/email + user email) and `npm run demo:passwords` re-run (new passwords in `.env.local`). `docs/AUDIT.md` and older PROGRESS entries keep the old name as history.
+- **ROADMAP**: new Session 13b "Scan import (AI-assisted)" right after the Excel import session: photo → AI extraction → human review of every field with confidence flags, nothing auto-saves, images deleted after extraction (privacy policy disclosure), internal tool first then paid add-on, provider is config, cost tracked per page. Planned only, not built.
+
+### Verification (18 Nov 2026, dev server on 3101)
+`npm run lint` 0 errors 0 warnings; `check:db` all passed; `test:unit` 21/21; `test:app` 22/22; `test:waitlist` 19/19; `test:tenant` 57/57; `test:nav` 15/15; `test:pdf` pass; `npm run build` pass; `npm audit` 0. Super admin signs in as `admin@nizamo.test` and reaches `/admin/waitlist`.
+
+### Decisions
+- Scan import is numbered 13b so later session numbers (and references to them) stay the same.
+- The Founding Schools perk is now "Bring your existing records with you" (free template import, or paid team entry), so the offer still lists four perks.
+
+### Known issues / next
+- Super admin's fresh seed still ships the shared weak seed password until `npm run demo:passwords` runs (unchanged behaviour).
+- Privacy policy must disclose scan-image deletion when Session 13b is built.
+- Next: Session 7 (reliability foundation) per `docs/ROADMAP.md`.
+
+---
+
+## Session 6 — close out Session 5 + security patches (branch `session-05-app-ui`, merged into main 18 Nov 2026)
 
 ### Done
 - Migration 004 applied on dev by the founder; `check:db` all green.
@@ -15,7 +38,7 @@
 Clean state (`.next` and `node_modules/.cache` deleted) → `npm run build` passes on the **first** run, no security stop. `check:db` all passed; `test:tenant` 57/57; `test:waitlist` 19/19; `test:app` 19/19; `test:unit` 13/13; `test:pdf` pass; `test:nav` 15/15 (all on the default port 3101); `npm run lint` 0 errors 0 warnings; `npm audit` 0. Browser smoke (real Chrome, dev server with `NEXT_PUBLIC_ROOT_DOMAIN=localhost`): `/design` 200; `ghs.localhost:3101/` → GHS login; unknown subdomain 404; principal and teacher sign in on the subdomain; dashboard greeting, Gregorian + Hijri date, glance and activity render; no console errors; 360px: no horizontal overflow, drawer opens; superadmin via `admin.localhost:3101` and `localhost:3101/login?school=admin` reaches `/admin/waitlist`.
 
 ### Known issues / next
-- Founder browser check pending; merge to main after confirmation.
+- Founder browser check done (18 Nov): UI approved; follow-up fixes below, then merged.
 - Topbar session pill shows "Session 2025–2026" (hard-coded academic year, audit M9) — fixed by the academic sessions work (ROADMAP Session 10).
 - `CLAUDE.md` "Roles" section and `schema.sql:35` still describe 3 roles (migration 002 allows 7); fix with the staff/roles session.
 - Dev console notes `scroll-behavior: smooth` on `<html>` without `data-scroll-behavior` (cosmetic).

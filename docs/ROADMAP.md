@@ -58,6 +58,16 @@ Sizing rule: if a session's scope does not fit, split it; never leave a half-bui
 - **Tests:** 1,000-row file imports; a bad row blocks nothing else in dry run and is reported with its row number; re-uploading the same file creates no duplicates; formula injection neutralised on export.
 - **Done when:** a school can load its whole register from its existing spreadsheet.
 
+### Session 13b — Scan import (AI-assisted) (planned only; not built yet)
+- **Why:** self-import with the Excel template is free; done-for-you data entry is a paid one-time service quoted by school size. Scanning makes that service fast, and later becomes a paid add-on for schools.
+- **Scope:** upload a photo of a General Register page or an admission form; AI extracts the fields into a review screen that reuses the Session 13 dry-run preview (same validation, same per-row errors, same single-transaction commit).
+  - A human checks every field before saving. **Nothing auto-saves.** Every field shows a confidence flag (high / check / unreadable); low-confidence fields are highlighted and must be confirmed one by one.
+  - Images are deleted right after extraction (private bucket, short-lived signed URL, delete job with a check that it ran). Disclose this in the privacy policy before launch.
+  - Rollout: an internal tool first (our team, for the paid data-entry service, superadmin-only permission); a school-facing paid add-on later behind its own permission and plan flag.
+  - The AI provider is a configuration choice (one adapter interface, provider and model in server-only env); no provider SDK outside the adapter. Track cost per page (provider, tokens/units, rupee cost) per school and per batch.
+- **Tests:** extraction output is validated with the same zod schema as Excel import; a review cannot be committed with an unconfirmed low-confidence field; the image is gone after extraction (storage check); cost row written per page; no image or extracted personal data in logs; tenant tests for the new tables.
+- **Done when:** our team can turn a photographed register page into reviewed, saved students, with the image deleted and the cost recorded.
+
 ### Session 14 — SLC and certificates (module 2b)
 - **Scope:** School Leaving Certificate (one click from the student, Urdu + English, numbered, reprint marked as duplicate), character and bonafide certificates, leaving-student flow.
 - **Tests:** PDF snapshot of fields; certificate numbers unique per school; issuing is audited; a left student no longer appears in active lists.

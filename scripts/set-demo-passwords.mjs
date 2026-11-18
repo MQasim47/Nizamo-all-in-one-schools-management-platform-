@@ -18,7 +18,7 @@ const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 })
 
 const ACCOUNTS = [
-  { env: 'DEMO_PASSWORD_SUPERADMIN', email: 'admin@edu4everyone.com', subdomain: 'admin' },
+  { env: 'DEMO_PASSWORD_SUPERADMIN', email: 'admin@nizamo.test', subdomain: 'admin' },
   { env: 'DEMO_PASSWORD_PRINCIPAL', email: 'principal@ghs.com', subdomain: 'ghs' },
   { env: 'DEMO_PASSWORD_TEACHER', email: 'ahmed@ghs.com', subdomain: 'ghs' },
 ]

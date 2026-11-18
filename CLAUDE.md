@@ -23,7 +23,7 @@ Nizamo (package name `nizamo`; production domain `getnizamo.com`, schools at `<s
 
 Setup: run `supabase/schema.sql` then `supabase/seed.sql` in the Supabase SQL editor, then `cp .env.local.example .env.local` and fill it in. See `.env.local.example` for every variable (Supabase URL/keys, `SUPABASE_JWT_SECRET`, `NEXTAUTH_SECRET`, root domain, demo mode). `NEXTAUTH_URL` is not read by app code (NextAuth reads it itself; only required in production off Vercel). Restart the dev server after env changes.
 
-Local login: `http://localhost:3000/login?school=ghs` (seed users e.g. `principal@ghs.com`, `ahmed@ghs.com`, password `password`); super admin via `?school=admin` (`admin@edu4everyone.com`).
+Local login: `http://localhost:3000/login?school=ghs` (seed users e.g. `principal@ghs.com`, `ahmed@ghs.com`, password `password`); super admin via `?school=admin` (`admin@nizamo.test`).
 
 ## Architecture
 

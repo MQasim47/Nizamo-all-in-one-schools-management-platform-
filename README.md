@@ -40,7 +40,7 @@ Demo accounts (password for all: `password`):
 - Teacher:   ahmed@ghs.com
 
 Super admin: http://localhost:3000/login?school=admin
-- admin@edu4everyone.com
+- admin@nizamo.test
 
 ## Troubleshooting
 

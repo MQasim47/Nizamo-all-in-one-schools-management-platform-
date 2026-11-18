@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }) {
   }
   const { name, email } = session.user
   return (
-    <SchoolShell brand={{ name: 'Nizamo Admin', subtitle: 'Platform' }} nav={buildNav('superadmin')} user={{ name, email, roleLabel: 'Platform admin' }}>
+    <SchoolShell brand={{ name: 'Nizamo Admin', subtitle: 'Platform', mark: 'nizamo' }} nav={buildNav('superadmin')} user={{ name, email, roleLabel: 'Platform admin' }}>
       {children}
     </SchoolShell>
   )

@@ -17,7 +17,7 @@ function demoAccounts(subdomain) {
 
   if (subdomain === 'admin') {
     if (process.env.NODE_ENV === 'production' || !process.env.DEMO_PASSWORD_SUPERADMIN) return []
-    return [{ label: 'Super Admin', email: 'admin@edu4everyone.com', password: process.env.DEMO_PASSWORD_SUPERADMIN }]
+    return [{ label: 'Super Admin', email: 'admin@nizamo.test', password: process.env.DEMO_PASSWORD_SUPERADMIN }]
   }
 
   if (subdomain === 'ghs') {

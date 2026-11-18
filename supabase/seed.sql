@@ -1,9 +1,9 @@
 -- !!! DEVELOPMENT ONLY. Never run this on a production project. !!!
 -- Every account below shares one weak password ('password'). After running it, run
 -- `npm run demo:passwords` to give each demo account its own strong random password.
--- (Warning added in Session 2; the data below is unchanged.)
+-- (Warning added in Session 2. Session 6: the super admin is admin@nizamo.test, school "Nizamo Admin".)
 -- ============================================
--- Edu4Everyone — Seed Data
+-- Nizamo — Seed Data
 -- Run this AFTER schema.sql in Supabase SQL Editor
 -- Creates demo accounts matching the PHP MVP demo logins
 --
@@ -15,13 +15,13 @@
 -- 1. SUPER ADMIN SCHOOL + USER
 -- ============================================
 INSERT INTO schools (school_name, subdomain, email, plan, status)
-VALUES ('Edu4Everyone Admin', 'admin', 'admin@edu4everyone.com', 'pro', 'active');
+VALUES ('Nizamo Admin', 'admin', 'admin@nizamo.test', 'pro', 'active');
 
 INSERT INTO users (school_id, name, email, password_hash, role, is_first_login)
 VALUES (
   (SELECT id FROM schools WHERE subdomain = 'admin'),
   'Super Admin',
-  'admin@edu4everyone.com',
+  'admin@nizamo.test',
   '$2b$10$BTSgOFdvxIbhWgSzl4yEH.927o9V2ecYm3FmeWH67VGXbHzNvDSwO',
   'superadmin',
   false

@@ -17,7 +17,7 @@ import { ICONS } from './icons'
 const noSubscribe = () => () => {}
 
 // The app frame shared by the school portal and the super-admin area.
-//   brand:  { name, logoUrl? }         the SCHOOL's identity (this is their portal)
+//   brand:  { name, logoUrl?, mark? }  the SCHOOL's identity (this is their portal); mark: 'nizamo' = platform area
 //   nav:    [{ label, items: [{ href, label, icon, badge? }] }]   already filtered by permission
 //   user:   { name, email?, roleLabel }
 //   sessionLabel: "Session 2025-26"    academic session pill (omit for super admin)
@@ -28,6 +28,14 @@ const STORAGE_KEY = 'nz-nav-collapsed'
 
 function SchoolMark({ brand, size = 32 }) {
   const box = { width: size, height: size }
+  // The platform area (super admin) is Nizamo's own portal: show our logo mark, not initials.
+  if (brand.mark === 'nizamo') {
+    return (
+      <span style={box} aria-hidden="true" className="flex shrink-0 items-center justify-center">
+        <LogoMark size={size} />
+      </span>
+    )
+  }
   return brand.logoUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={brand.logoUrl} alt="" style={box} className="shrink-0 rounded-lg border border-line bg-surface object-contain" />
