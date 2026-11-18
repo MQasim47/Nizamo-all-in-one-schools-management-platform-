@@ -4,7 +4,7 @@
 -- (Warning added in Session 2. Session 6: the super admin is admin@nizamo.test, school "Nizamo Admin".)
 -- ============================================
 -- Nizamo — Seed Data
--- Run this AFTER schema.sql in Supabase SQL Editor
+-- Run this AFTER `npm run migrate` (all migrations), in the Supabase SQL Editor, dev only
 -- Creates demo accounts matching the PHP MVP demo logins
 --
 -- Password for ALL accounts below is: password

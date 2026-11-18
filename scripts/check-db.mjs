@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+import { fileURLToPath } from 'node:url'
 
 const envPath = new URL('../.env.local', import.meta.url)
 if (existsSync(envPath)) {
@@ -29,6 +30,7 @@ const EXPECTED = {
   user_students: 'id,school_id,user_id,student_id',
   audit_log: 'id,school_id,user_id,table_name,record_id,action,old_data,new_data,created_at',
   login_attempts: 'id,identifier,success,created_at',
+  idempotency_keys: 'id,school_id,user_id,scope,key,request_hash,state,response_status,response_body,created_at,expires_at',
 }
 
 let failed = false
@@ -71,7 +73,7 @@ if (probe.error) {
     if (!hostOk && netOk) kind = 'project paused/deleted or wrong NEXT_PUBLIC_SUPABASE_URL (host does not resolve, internet is fine)'
     else if (!netOk) kind = 'network blocked (no DNS at all)'
   }
-  if (kind === 'unknown' && probe.status === 404) kind = 'schema mismatch (table missing: run supabase/schema.sql + seed.sql)'
+  if (kind === 'unknown' && probe.status === 404) kind = 'schema mismatch (table missing: run npm run migrate, then supabase/seed.sql on dev)'
   if (kind === 'unknown' && probe.status >= 500) kind = 'project paused or Supabase outage'
   bad(kind, probe.error.message || JSON.stringify(probe.error) || `HTTP ${probe.status}`)
   console.log('\nIf this says paused: restore the project in the Supabase dashboard, wait ~2 min, rerun.')
@@ -87,9 +89,24 @@ for (const [table, cols] of Object.entries(EXPECTED)) {
   else ok(`${table}: all ${cols.split(',').length} referenced columns exist`)
 }
 
-console.log('4. Demo school + NextAuth login path')
+console.log('4. Migrations (repo vs schema_migrations)')
+{
+  const { readMigrations, planMigrations } = await import('./lib/migrations.mjs')
+  const files = readMigrations(fileURLToPath(new URL('../supabase/migrations', import.meta.url)))
+  const { data: rows, error } = await db.from('schema_migrations').select('version, name, checksum').order('version')
+  if (error) {
+    bad('migrations not tracked', `schema_migrations is missing (${error.code || error.message}). One-time: npm run migrate -- --baseline 004, then npm run migrate`)
+  } else {
+    const { pending, problems } = planMigrations(files, rows)
+    for (const p of problems) bad(`migration ${p.type}`, p.message)
+    if (pending.length) bad('database behind the repo', `pending: ${pending.map((f) => f.file).join(', ')} (run npm run migrate)`)
+    if (!problems.length && !pending.length) ok(`all ${files.length} migrations applied, checksums match (latest ${files.at(-1)?.version})`)
+  }
+}
+
+console.log('5. Demo school + NextAuth login path')
 const { data: school, error: sErr } = await db.from('schools').select('*').eq('subdomain', 'ghs').eq('status', 'active').single()
-if (sErr || !school) bad('seed missing', `school 'ghs' not found/active: ${sErr?.message || 'no row'} (run supabase/seed.sql)`)
+if (sErr || !school) bad('seed missing', `school 'ghs' not found/active: ${sErr?.message || 'no row'} (run supabase/seed.sql on dev)`)
 else {
   ok(`school 'ghs' exists: ${school.school_name}`)
   const { data: user, error: uErr } = await db.from('users').select('*').eq('email', 'principal@ghs.com').eq('school_id', school.id).eq('status', 'active').single()

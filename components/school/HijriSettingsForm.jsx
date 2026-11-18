@@ -18,7 +18,7 @@ export default function HijriSettingsForm({ initial, canEdit }) {
   async function save(e) {
     e.preventDefault()
     setSaving(true)
-    const res = await fetch('/api/school/settings', {
+    const res = await fetch('/api/v1/settings', {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ hijri_offset: value }),
@@ -29,7 +29,7 @@ export default function HijriSettingsForm({ initial, canEdit }) {
       router.refresh()
     } else {
       const j = await res.json().catch(() => ({}))
-      notify.error(j.error || 'Could not save. Please try again.')
+      notify.error(j.error?.fields?.hijri_offset || j.error?.message || 'Could not save. Please try again.')
     }
   }
 

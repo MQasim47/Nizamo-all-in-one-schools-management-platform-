@@ -1,5 +1,64 @@
 # PROGRESS
 
+## Session 7 — safety net: CI, migrations, error monitoring, API pattern (branch `session-07-safety`, 18 Nov 2026)
+
+### Done
+- **CI** (`.github/workflows/ci.yml`, docs in `docs/CI.md`, badge in README). It runs on every push and PR to main.
+  - `checks` job: `npm ci`, lint, `test:unit`, `test:pdf`, build (placeholder env values).
+  - `database` job: throwaway local Supabase via the Supabase CLI (`ci/supabase/config.toml`). It runs `npm run migrate` on an empty database, a second migrate that must say "Nothing to apply", `db:status`, `test:tenant` (real Supabase roles, PostgREST, RLS) and `test:migrate`.
+  - Safety: no repository secrets, so CI cannot reach dev. The runner refuses non-local databases when `CI` is set.
+- **Migration tracking**
+  - `supabase/schema.sql` moved to `supabase/migrations/001_schema.sql` (git mv).
+  - `npm run migrate` / `npm run db:status` (`scripts/migrate.mjs`, `pg`). One transaction per file plus its `schema_migrations` row (sha256 checksum, CRLF-insensitive). Advisory lock; lock and statement timeouts.
+  - It refuses edited or missing applied files and out-of-order numbering.
+  - `--baseline NNN` records a hand-built database after probing that the objects exist. `--dry-run` and `--status` change nothing.
+  - Standalone `BEGIN;`/`COMMIT;` in old files (002, 003) are removed in memory, so each file and its record commit together.
+  - `check:db` now fails when the dev DB is behind the repo or a checksum differs.
+- **Migration 005** (`005_api_foundation.sql`): `idempotency_keys` (school + user scoped RLS, column-level grants, 24 h expiry), and audit **L11**: `users.school_id NOT NULL`.
+- **Sentry** (`@sentry/nextjs` 11.14, free plan): `instrumentation.js`, `instrumentation-client.js`, `app/global-error.jsx`. Off without `NEXT_PUBLIC_SENTRY_DSN`.
+  - Privacy settings: `sendDefaultPii: false`, no Replay, tracing 0 by default.
+  - `lib/monitoring/scrub.mjs` strips the user, cookies, bodies, query strings and unknown headers. It replaces emails, phones, CNIC/B-Form, tokens and DB `Key (x)=(value)` details in messages, breadcrumbs, extra data and stack-frame code lines, and drops frame variables.
+  - CSP `connect-src` allows Sentry ingest. Superadmin `GET /api/v1/admin/monitoring-test` throws on purpose.
+- **API pattern** (`docs/API-PATTERN.md`, with copy-paste route/service/validation/migration/test templates).
+  - Building blocks: `lib/api/errors.mjs` (envelope + Postgres error mapping incl. our `NZ4xx` codes), `handler.js` (`api()`, Sentry for unexpected errors only, `no-store`), `auth.js` (`requireAuth` with a bearer path that returns 401 until Session 8, `requirePermission`, `requireSuperadmin`), `parse.mjs` (400/413/415/422 with `fields`), `idempotency.mjs` + `idempotency-store.js`, `db.mjs` (`unwrap`, `callRpc`), `pagination.mjs`, `enforceRateLimit`.
+  - Money: `formatRs` is the one formatter and now shows whole rupees only; added `toRupees`, `sumRupees` and `rupeesSchema`.
+  - Dates: `isValidDate`, `toPkDate`, `addDaysPk`, `pkDayRange`, `pkDateSchema`. A lint rule blocks `toISOString().split/slice`; it caught one case in the waitlist CSV filename, now fixed.
+- **Reference endpoints**:
+  - `POST /api/waitlist` → `POST /api/v1/waitlist` (`lib/services/waitlist.js`).
+  - `PATCH /api/school/settings` → `GET`/`PATCH /api/v1/settings` (`lib/services/settings.js`, `lib/validation/settings.mjs`).
+  - Old paths removed; forms updated to the envelope (validation is now 422 with `error.fields`). `requireApiSession` (older routes) returns the envelope too.
+- **L9**: `getShellSettings` no longer hides DB errors. Dashboard blocks that fail still show their own error state and are reported to Sentry.
+- **Roles docs**: CLAUDE.md "Roles" now lists the 7 roles the DB allows; `001_schema.sql` comments point to 002 (7 roles) and 005 (NOT NULL).
+- **Privacy policy draft**: new "Error monitoring" section covering Sentry, what is filtered, what a report keeps, EU storage and 30-day deletion. Also listed among service providers.
+- **Tests**:
+  - Unit tests 21 → **58**: `tests/api.test.mjs`, `money-dates.test.mjs`, `scrub.test.mjs`, `migrations.test.mjs`.
+  - `scripts/test-api.mjs` (`npm run test:api`, the per-module template). `test-tenant` §8 adds 12 checks: idempotency keys cross-school/cross-user, `schema_migrations` hidden, L11.
+  - `scripts/test-migrate.mjs` (23 checks). Settings API checks moved from `test:app` to `test:api`. `test:app` uses environment variables over `.env.local`.
+
+### Verification (18 Nov 2026)
+- Lint 0/0; `test:unit` 58/58; `test:pdf` pass; `npm run build` pass.
+- On the local CI stack (Docker, the same steps as the workflow): migrate 001–005 on an empty DB; second run "Nothing to apply"; `db:status` clean; `test:tenant` **69/69**; `test:migrate` **23/23**.
+- Same local stack + `seed.sql` + dev server on 3101: `test:api` 23/23, `test:waitlist` 21/21, `test:app` 12/12, `test:nav` 15/15, `check:db` all passed (incl. the migration check).
+- Sentry end to end: DSN pointed at a local capture listener, then the monitoring-test route was triggered. The event arrived, the message read `[email] [phone]`, and the payload contained no email, phone, user, cookie, IP or query string. The first run found the test literal in Sentry's source-code context lines; the scrubber now cleans those, with a regression case in `scrub.test.mjs`.
+- **Not run yet against the dev project**: 005 is not applied on dev (needs `DATABASE_URL`, founder step). So `check:db`, `test:tenant`, `test:api`, `test:waitlist` and `test:app` against dev wait for that.
+
+### Decisions
+- CI uses a local Supabase (CLI 3.2.0, Postgres 17) instead of a hosted test project: free, real Supabase roles, no secrets.
+- 001 lives in `supabase/migrations/` so one folder holds the whole history. Comment edits to 001 were made before its checksum is recorded (baseline).
+- Validation errors are 422 (malformed requests 400), per the API rules; the waitlist form and tests follow.
+- Idempotency keys are per user and expire after 24 h. Money endpoints must ALSO keep a unique key on the business table inside the same RPC (documented).
+- No source-map upload to Sentry yet (needs a Sentry auth token; optional later).
+
+### Known issues
+- **`npm audit`: 22 high** (main had 19). Cause: a new picomatch ReDoS advisory (GHSA-fc5q-39xc-vjpf) that affects every picomatch version (≤4.0.7, no patched release). It comes in through ESLint (`eslint-config-next`), Tailwind 3 and, new, Sentry's build plugin (`@rollup/plugin-commonjs`). These are build-time glob matchers that never see user input. `npm audit fix --force` would downgrade Sentry to v8. Apply the fix as soon as picomatch ships one.
+- Older routes (`/api/register`, `/api/schools/*`, `/api/admin/waitlist/*`, `/admin/waitlist/export`) are not on `/api/v1` yet; move them when their module is touched.
+- `migrate` connects with TLS but does not verify the server certificate unless `DATABASE_SSL_CA` is set (optional founder step).
+
+### Next
+Founder steps (DATABASE_URL + baseline + migrate 005, Sentry project), then re-run the local live tests against dev. Then Session 8 (bearer tokens / `device_sessions`, password reset, phone identity) per `docs/ROADMAP.md`.
+
+---
+
 ## Session 6 follow-up — founder's browser-check fixes (18 Nov 2026, merged into main)
 
 ### Done

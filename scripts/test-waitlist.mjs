@@ -1,4 +1,4 @@
-// Waitlist API test. Run against a running server, with migration 003 applied:
+// Waitlist API test (POST /api/v1/waitlist, the public reference endpoint). Run against a running server, with migration 003 applied:
 //   npm run dev -- -p 3101        (in another terminal)
 //   TEST_BASE=http://localhost:3101 npm run test:waitlist
 // Uses a unique fake client IP per case (x-forwarded-for) so it never trips the limiter for real
@@ -25,7 +25,7 @@ const run = randomInt(100000, 999999)
 let ipSeq = 0
 const ip = () => `10.${run % 250}.${(run >> 3) % 250}.${++ipSeq}`
 const post = (body, headers = {}) =>
-  fetch(`${BASE}/api/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip(), ...headers }, body: JSON.stringify(body) })
+  fetch(`${BASE}/api/v1/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip(), ...headers }, body: JSON.stringify(body) })
 
 const digits = String(randomInt(100000000, 999999999)) // 9 digits after the leading 3
 const local = `03${digits.slice(0, 1)}${digits.slice(1)}`.slice(0, 11) // 03XXXXXXXXX
@@ -37,17 +37,24 @@ try {
   // 1 validation
   let r = await post({ school_name: 'x' })
   let j = await r.json()
-  check('rejects an incomplete form with field errors (400)', r.status === 400 && j.errors?.school_name && j.errors?.whatsapp, JSON.stringify(j))
+  check('rejects an incomplete form with field errors (422, standard envelope)', r.status === 422 && j.error?.code === 'validation_failed' && j.error?.fields?.school_name && j.error?.fields?.whatsapp, JSON.stringify(j))
 
   r = await post({ ...valid, whatsapp: '0211234567' })
   j = await r.json()
-  check('rejects a non-mobile phone number', r.status === 400 && !!j.errors?.whatsapp, JSON.stringify(j))
+  check('rejects a non-mobile phone number (422)', r.status === 422 && !!j.error?.fields?.whatsapp, JSON.stringify(j))
 
   r = await post({ ...valid, student_count_range: 'huge' })
-  check('rejects an unknown student range', r.status === 400)
+  check('rejects an unknown student range (422)', r.status === 422)
 
-  r = await fetch(`${BASE}/api/waitlist`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-forwarded-for': ip() }, body: 'x' })
+  r = await fetch(`${BASE}/api/v1/waitlist`, { method: 'POST', headers: { 'content-type': 'text/plain', 'x-forwarded-for': ip() }, body: 'x' })
   check('rejects non-JSON requests (415)', r.status === 415)
+
+  r = await fetch(`${BASE}/api/v1/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip() }, body: '{not json' })
+  j = await r.json()
+  check('malformed JSON -> 400 bad_request, no stack trace', r.status === 400 && j.error?.code === 'bad_request' && Object.keys(j).join() === 'error' && !/\bat \S+ \(|\.m?js:\d/.test(JSON.stringify(j)), JSON.stringify(j))
+
+  r = await fetch(`${BASE}/api/waitlist`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip() }, body: JSON.stringify(valid) })
+  check('old /api/waitlist path is gone (404)', r.status === 404, `status ${r.status}`)
 
   // 2 honeypot
   const hpPhone = `+923${String(randomInt(100000000, 999999999))}`
@@ -99,7 +106,7 @@ try {
     const res = await post({ school_name: 'x' }, { 'x-forwarded-for': fixed })
     codes.push(res.status)
   }
-  check('rate limit: first 5 are processed, the 6th is 429', codes.slice(0, 5).every((c) => c === 400) && codes[5] === 429, codes.join(','))
+  check('rate limit: first 5 are processed, the 6th is 429', codes.slice(0, 5).every((c) => c === 422) && codes[5] === 429, codes.join(','))
 } catch (e) {
   fail++
   console.error('TEST ERROR:', e.message)

@@ -127,9 +127,9 @@ Fix: one token set, load Playfair + Inter via `next/font`, decide on the logo ma
 **L6.** No `error.jsx`, `loading.jsx` or `not-found.jsx` anywhere under `app/`. Failed DB calls (`throw error` in every helper) will surface as the default Next error page.
 **L7.** `npm run lint` has no ESLint config (`.eslintrc*` missing); `next lint` will prompt interactively and CI would hang.
 **L8.** Unused dependencies: `jose`, `@supabase/ssr`, `@react-pdf/renderer`, `papaparse`, `lucide-react` (`package.json:16-26`), plus the anon client `supabase` and the `x-school-subdomain` header. Keep only if the next sessions use them (`jose`/PDF/CSV likely will); `@supabase/ssr` carries a `cookie` advisory.
-**L9.** `getSchoolSettings` swallows every error as "missing row" and inserts (`lib/db/schools.js:138-147`), masking outages.
+**L9. [FIXED Session 7: `getSchoolSettings` already rethrew; the same pattern in `getShellSettings` (lib/db/dashboard.js) now throws, and dashboard blocks report failures to Sentry]** `getSchoolSettings` swallows every error as "missing row" and inserts (`lib/db/schools.js:138-147`), masking outages.
 **L10.** `initials()` returns the first two letters of the name (`format.js:61-64`): "Principal Sahab" → "PR". Use first letters of first and last word.
-**L11.** `UNIQUE(email, school_id)` allows duplicate emails when `school_id` is NULL (`schema.sql:31,40`); make `school_id` NOT NULL or add a partial unique index.
+**L11. [FIXED Session 7: migration 005 makes `users.school_id` NOT NULL]** `UNIQUE(email, school_id)` allows duplicate emails when `school_id` is NULL (`schema.sql:31,40`); make `school_id` NOT NULL or add a partial unique index.
 **L12.** `.env.local` carries `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_APP_NAME` which no code reads (`.env.local.example` omits them on purpose).
 
 ---

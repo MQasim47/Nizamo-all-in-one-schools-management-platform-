@@ -1,5 +1,7 @@
 # Nizamo — Next.js + Supabase
 
+[![CI](https://github.com/MQasim47/Nizamo-all-in-one-schools-management-platform-/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MQasim47/Nizamo-all-in-one-schools-management-platform-/actions/workflows/ci.yml)
+
 School Management SaaS for Pakistani schools. Migrated from PHP MVP.
 
 ## Setup Steps (do in this exact order)
@@ -10,8 +12,8 @@ School Management SaaS for Pakistani schools. Migrated from PHP MVP.
    - Region: Singapore (closest to Pakistan)
    - Save your database password somewhere safe
 2. Wait ~2 min for project to provision
-3. Open **SQL Editor** → New Query → paste ALL of `supabase/schema.sql` → RUN
-4. New Query again → paste ALL of `supabase/seed.sql` → RUN
+3. Put the **Session pooler** connection string in `.env.local` as `DATABASE_URL` (see step 2 and `.env.local.example`), then run `npm run migrate`: it applies every file in `supabase/migrations` in order and records it. Never paste migrations into the SQL editor.
+4. Dev only: open **SQL Editor** → New Query → paste ALL of `supabase/seed.sql` → RUN (demo accounts; never on production)
 5. Go to **Project Settings → API** and copy these 3 values:
    - Project URL
    - anon public key
@@ -28,7 +30,8 @@ School Management SaaS for Pakistani schools. Migrated from PHP MVP.
 ### 3. Install, verify, run
 ```bash
 npm install
-npm run check:db   # verifies Supabase is reachable, schema matches, demo login works
+npm run migrate    # applies pending database migrations (needs DATABASE_URL)
+npm run check:db   # verifies Supabase is reachable, schema + migrations match, demo login works
 npm run dev
 ```
 
@@ -62,8 +65,12 @@ named .env.local.example. Restart `npm run dev` after any .env change.
 - `app/` — pages & API routes (Next.js App Router)
 - `components/` — UI components (same design as PHP MVP)
 - `lib/` — Supabase client, auth config, database functions
-- `supabase/` — SQL files (run in Supabase dashboard, not part of the app)
-- `middleware.js` — subdomain detection + auth protection
+- `supabase/migrations/` — numbered SQL migrations, applied by `npm run migrate` (tracked in `schema_migrations`); `supabase/seed.sql` is dev-only demo data
+- `proxy.js` — subdomain detection + auth protection (Next 16 name for middleware)
+- `app/api/v1/` + `lib/services/` — the API pattern every module follows ([docs/API-PATTERN.md](docs/API-PATTERN.md))
+
+## CI and tests
+Every push and pull request to `main` runs lint, unit tests, the PDF check, the build, and a database job (all migrations + tenant-isolation tests on a throwaway local Supabase). It never touches the dev database. Tests that need the dev database or a running server (`check:db`, `test:api`, `test:waitlist`, `test:app`, `test:nav`) stay local. Details: [docs/CI.md](docs/CI.md).
 
 ## Status
 DONE: Auth, login, subdomain detection, layout, sidebar, dashboard placeholder

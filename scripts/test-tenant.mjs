@@ -58,12 +58,13 @@ async function seedSchool(label) {
   const ft = must(await admin.from('fee_types').insert({ school_id: s.id, name: 'Tuition' }).select().single(), 'fee_type')
   must(await admin.from('fee_structures').insert({ school_id: s.id, class_id: klass[0].id, fee_type_id: ft.id, amount: 1000 }), 'fee_structure')
   must(await admin.from('fee_payments').insert({ school_id: s.id, student_id: students[0].id, fee_type_id: ft.id, amount_paid: 500 }), 'fee_payment')
+  must(await admin.from('idempotency_keys').insert({ school_id: s.id, user_id: principal.id, scope: 'test.create', key: `key-${label}-${tag}`, request_hash: '0'.repeat(64) }), 'idempotency key')
   return { school: s, principal, teacher, teacher2, parent, klass, subject, students, ft }
 }
 
 const USER_COLS = 'id, school_id, name, email, role, phone, status, is_first_login, created_at'
 const TABLES = ['schools', 'users', 'school_settings', 'classes', 'subjects', 'teacher_assignments', 'students',
-  'user_students', 'attendance', 'results', 'homework', 'fee_types', 'fee_structures', 'fee_payments', 'audit_log']
+  'user_students', 'attendance', 'results', 'homework', 'fee_types', 'fee_structures', 'fee_payments', 'audit_log', 'idempotency_keys']
 const scopeCol = (t) => (t === 'schools' ? 'id' : 'school_id')
 const cols = (t) => (t === 'users' ? USER_COLS : '*')
 
@@ -173,6 +174,21 @@ try {
   const roles = new Set([...Object.keys(fromDb), ...Object.keys(ROLE_PERMISSIONS)])
   const diff = [...roles].filter((r) => !same(fromDb[r], ROLE_PERMISSIONS[r]))
   check('lib/auth/permissions.mjs matches the role_permissions table', diff.length === 0, `differs: ${diff.join(', ')}`)
+
+  console.log('\n8. Idempotency keys, migration records, L11 (migration 005)')
+  const idem = (u, extra = {}) => ({ school_id: u.school_id, user_id: u.id, scope: 'test.create', key: `k${randomBytes(6).toString('hex')}`, request_hash: 'a'.repeat(64), ...extra })
+  check('A can store its own idempotency key', !(await pa.from('idempotency_keys').insert(idem(A.principal))).error)
+  check('A cannot store a key in school B', !!(await pa.from('idempotency_keys').insert(idem(A.principal, { school_id: B.school.id }))).error)
+  check("A cannot store a key as another user (A's teacher)", !!(await pa.from('idempotency_keys').insert(idem(A.teacher))).error)
+  check("A cannot pose as B's principal", !!(await pa.from('idempotency_keys').insert(idem(B.principal))).error)
+  check("a teacher cannot see the principal's keys", denied(await t1.from('idempotency_keys').select('id')))
+  check("A cannot update or delete B's keys (0 rows)", denied(await pa.from('idempotency_keys').update({ state: 'completed' }).eq('school_id', B.school.id).select()) && denied(await pa.from('idempotency_keys').delete().eq('school_id', B.school.id).select()))
+  const bKeys = must(await admin.from('idempotency_keys').select('state').eq('school_id', B.school.id), 'idem b')
+  check("B's key untouched", bKeys.length === 1 && bKeys[0].state === 'in_progress', JSON.stringify(bKeys))
+  check('anonymous visitors cannot read idempotency keys', denied(await anon.from('idempotency_keys').select('*')))
+  check('schema_migrations is hidden from school users and visitors', !!(await pa.from('schema_migrations').select('*')).error && !!(await anon.from('schema_migrations').select('*')).error)
+  check('schema_migrations is readable by the service role (check:db)', !(await admin.from('schema_migrations').select('version').limit(1)).error)
+  check('L11: a user without a school is rejected', !!(await admin.from('users').insert({ name: 'x', email: `orphan-${tag}@tt.test`, password_hash: 'x', role: 'principal' })).error)
 } catch (e) {
   fail++
   console.error('\nTEST SETUP ERROR:', e.message)

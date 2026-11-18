@@ -67,9 +67,18 @@ export default function PrivacyPage() {
           ],
         },
         {
+          heading: 'Error monitoring',
+          body: [
+            'When something breaks in Nizamo, an error report is sent to Sentry, an error-monitoring service, so we can find and fix the problem quickly. Our Sentry account stores these reports in the European Union.',
+            'Personal data is filtered out on our side before a report is sent. We remove names, email addresses, phone and WhatsApp numbers, CNIC and B-Form numbers, addresses, passwords, sign-in cookies and tokens, and the contents of forms and requests. Session recording is switched off.',
+            'What a report keeps: the technical error message and where in our code it happened (with any personal details removed), the page or address path without its query string, the browser and operating system, and the time. Reports do not say who was signed in.',
+            'Error reports are deleted automatically after 30 days. We use them only to keep Nizamo working, never for advertising or to profile anyone.',
+          ],
+        },
+        {
           heading: 'We do not sell data',
           body: [
-            'We do not sell or rent personal data, and we do not show advertising. We share data only with service providers that help us run Nizamo (for example hosting and, when you choose to use them, WhatsApp messaging and payment providers), under the same purpose limits, or when the law requires it.',
+            'We do not sell or rent personal data, and we do not show advertising. We share data only with service providers that help us run Nizamo (for example hosting, error monitoring and, when you choose to use them, WhatsApp messaging and payment providers), under the same purpose limits, or when the law requires it.',
           ],
         },
         {

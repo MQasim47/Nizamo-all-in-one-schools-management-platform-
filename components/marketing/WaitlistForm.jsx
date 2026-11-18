@@ -28,7 +28,7 @@ export default function WaitlistForm() {
     setStatus('sending')
     setErrors({})
     try {
-      const res = await fetch('/api/waitlist', {
+      const res = await fetch('/api/v1/waitlist', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ ...values, source: readSource() }),
@@ -36,8 +36,8 @@ export default function WaitlistForm() {
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.ok) {
         setStatus(data.duplicate ? 'duplicate' : 'done')
-      } else if (res.status === 400 && data.errors) {
-        setErrors(data.errors)
+      } else if (res.status === 422 && data.error?.fields) {
+        setErrors(data.error.fields)
         setStatus('idle')
       } else if (res.status === 429) {
         setStatus('limited')

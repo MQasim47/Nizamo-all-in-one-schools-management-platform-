@@ -1,85 +1,25 @@
-// Live permission checks for the app shell and the school settings API.
+// Live permission checks for the app shell (per-role menus and blocks). The settings API moved to
+// /api/v1/settings and is tested by scripts/test-api.mjs (npm run test:api).
 //   npm run dev -- -p 3101   then   npm run test:app
 // Signs in through NextAuth like a browser does (cookie jar), as the demo principal and teacher.
-// Needs the demo accounts (npm run demo:passwords). Changes nothing: every write attempt here is
-// either refused or invalid.
-import { readFileSync } from 'node:fs'
+// Needs the demo accounts (npm run demo:passwords). Changes nothing.
 import { createClient } from '@supabase/supabase-js'
+import { loadEnvLocal } from './lib/env.mjs'
+import { BASE, signIn } from './lib/http.mjs'
 
-const env = Object.fromEntries(
-  readFileSync(new URL('../.env.local', import.meta.url), 'utf8')
-    .split(/\r?\n/)
-    .map((l) => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/))
-    .filter(Boolean)
-    .map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')])
-)
-const BASE = process.env.TEST_BASE || 'http://localhost:3101'
+// Environment variables win over .env.local (so the same test runs against a local stack).
+loadEnvLocal()
+const env = process.env
 let pass = 0, fail = 0
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  -> ' + extra}`) }
-
-function jar() {
-  const store = {}
-  return {
-    absorb(res) {
-      for (const c of res.headers.getSetCookie?.() || []) {
-        const [kv] = c.split(';')
-        const i = kv.indexOf('=')
-        store[kv.slice(0, i)] = kv.slice(i + 1)
-      }
-    },
-    header: () => Object.entries(store).map(([k, v]) => `${k}=${v}`).join('; '),
-  }
-}
-
-async function signIn(email, password, subdomain) {
-  const j = jar()
-  const csrfRes = await fetch(`${BASE}/api/auth/csrf`)
-  j.absorb(csrfRes)
-  const { csrfToken } = await csrfRes.json()
-  const res = await fetch(`${BASE}/api/auth/callback/credentials`, {
-    method: 'POST',
-    redirect: 'manual',
-    headers: { 'content-type': 'application/x-www-form-urlencoded', cookie: j.header() },
-    body: new URLSearchParams({ csrfToken, email, password, subdomain, json: 'true' }),
-  })
-  j.absorb(res)
-  return j
-}
-
-const patch = (j, body, raw) =>
-  fetch(`${BASE}/api/school/settings`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json', ...(j ? { cookie: j.header() } : {}) },
-    body: raw ?? JSON.stringify(body),
-  })
 
 try {
   const principal = await signIn('principal@ghs.com', env.DEMO_PASSWORD_PRINCIPAL, 'ghs')
   const teacher = await signIn('ahmed@ghs.com', env.DEMO_PASSWORD_TEACHER, 'ghs')
 
-  // 1. who is allowed to call the settings API
-  let r = await patch(null, { hijri_offset: 0 })
-  check('settings API: signed out is refused (401)', r.status === 401, r.status)
-  r = await patch(teacher, { hijri_offset: 0 })
-  check('settings API: a teacher is refused (403)', r.status === 403, r.status)
-
-  // 2. input is validated and whitelisted before anything touches the database
-  for (const [name, body] of [
-    ['out of range (+3)', { hijri_offset: 3 }],
-    ['out of range (-3)', { hijri_offset: -3 }],
-    ['not a number', { hijri_offset: 'one' }],
-    ['not a whole number', { hijri_offset: 0.5 }],
-    ['extra field (school_id) is rejected', { hijri_offset: 0, school_id: '00000000-0000-0000-0000-000000000000' }],
-    ['extra field (passing_percentage) is rejected', { hijri_offset: 0, passing_percentage: 1 }],
-    ['empty body', {}],
-  ]) {
-    r = await patch(principal, body)
-    check(`settings API: principal, ${name} -> 400`, r.status === 400, r.status)
-  }
-  r = await patch(principal, null, '{not json')
-  check('settings API: malformed JSON -> 400', r.status === 400, r.status)
-
-  // 3. pages: each role sees only its own menu; private pages stay private
+  // The settings API (401/403/400/422, other school, audit) is covered by npm run test:api.
+  // Pages: each role sees only its own menu; private pages stay private
+  let r
   const page = (j, path) => fetch(`${BASE}${path}`, { redirect: 'manual', headers: j ? { cookie: j.header() } : {} })
   r = await page(null, '/school/settings')
   check('settings page: signed out is redirected to login', r.status === 307, r.status)

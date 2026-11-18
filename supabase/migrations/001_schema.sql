@@ -1,6 +1,7 @@
 -- ============================================
 -- Nizamo — Supabase PostgreSQL Schema
--- Run this in Supabase SQL Editor FIRST
+-- Migration 001. Applied by `npm run migrate` (never pasted by hand).
+-- Later migrations change parts of this file; read them together (e.g. 002 widens users.role).
 -- ============================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -28,10 +29,12 @@ CREATE TABLE schools (
 -- ============================================
 CREATE TABLE users (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  school_id       UUID REFERENCES schools(id) ON DELETE CASCADE,
+  school_id       UUID REFERENCES schools(id) ON DELETE CASCADE, -- NOT NULL since 005 (audit L11)
   name            TEXT NOT NULL,
   email           TEXT NOT NULL,
   password_hash   TEXT NOT NULL,
+  -- 002 replaces this CHECK with 7 roles: superadmin, principal, teacher, accountant,
+  -- receptionist, parent, student (permissions per role live in role_permissions).
   role            TEXT NOT NULL CHECK (role IN ('superadmin','principal','teacher')),
   phone           TEXT,
   status          TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive')),

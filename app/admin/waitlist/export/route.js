@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireApiSession } from '@/lib/auth/session'
 import { ForbiddenError } from '@/lib/db/admin/schools'
 import { listWaitlist, waitlistToCsv } from '@/lib/db/admin/waitlist'
+import { todayPk } from '@/lib/utils/dates.mjs'
 
 export async function GET(request) {
   const { session, error } = await requireApiSession()
@@ -13,7 +14,7 @@ export async function GET(request) {
     return new NextResponse(waitlistToCsv(rows), {
       headers: {
         'content-type': 'text/csv; charset=utf-8',
-        'content-disposition': `attachment; filename="nizamo-waitlist-${new Date().toISOString().slice(0, 10)}.csv"`,
+        'content-disposition': `attachment; filename="nizamo-waitlist-${todayPk()}.csv"`,
         'cache-control': 'no-store',
       },
     })
